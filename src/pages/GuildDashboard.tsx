@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useAppContext } from '../store';
 import { ChevronLeft, Edit2, Menu, X, Shield, Swords, MoveHorizontal } from 'lucide-react';
 import MemberEditModal from '../components/MemberEditModal';
+import Footer from '../components/Footer';
 import { Role } from '../types';
 import { getTierTextColorDark, getTierHighlightClass, getTierHoverClass } from '../utils';
 
@@ -266,6 +267,7 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
                 </table>
               </div>
             </div>
+            <Footer />
           </div>
         </main>
       </div>

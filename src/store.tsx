@@ -16,6 +16,10 @@ const defaultData: Database = {
   users: {
     "admin": { username: "admin", password: "123", role: "admin" },
     "manager": { username: "manager", password: "123", role: "manager" }
+  },
+  settings: {
+    sitePassword: "abc",
+    redirectUrl: "https://www.browndust2.com/"
   }
 };
 
@@ -48,6 +52,7 @@ interface AppContextType {
   resetCostumeOrders: () => Promise<void>;
   restoreData: (guilds: Guild[], members: Member[], costumes: Costume[]) => Promise<void>;
   updateUserPassword: (username: string, password: string) => Promise<void>;
+  updateSettings: (data: Partial<Database['settings']>) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -56,7 +61,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [db, setDbState] = useState<Database>(defaultData);
   const [currentView, setCurrentView] = useState<ViewState>(null);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [loadedStates, setLoadedStates] = useState({
+    global: false,
+    guilds: false,
+    costumes: false,
+    users: false
+  });
+
+  const isLoaded = loadedStates.global && loadedStates.guilds && loadedStates.costumes && loadedStates.users;
 
   const [isOffline, setIsOffline] = useState(false);
 
@@ -68,19 +80,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const data = snap.data();
         setDbState(prev => ({ 
           ...prev, 
-          guildOrder: data.guildOrder || defaultData.guildOrder
+          guildOrder: data.guildOrder || defaultData.guildOrder,
+          settings: data.settings || defaultData.settings
         }));
       } else {
         setDoc(doc(firestore, 'appData', 'main'), defaultData).catch(console.error);
       }
-      setIsLoaded(true);
+      setLoadedStates(prev => ({ ...prev, global: true }));
     }, (error) => {
       console.error("Error fetching global data:", error);
       if (error.code === 'permission-denied') {
         setIsOffline(true);
-        console.warn("Falling back to offline mode due to permission error.");
       }
-      setIsLoaded(true);
+      setLoadedStates(prev => ({ ...prev, global: true }));
     });
 
     // Guilds collection
@@ -90,11 +102,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         guilds[doc.id] = { ...doc.data() as Guild, id: doc.id };
       });
       setDbState(prev => ({ ...prev, guilds }));
+      setLoadedStates(prev => ({ ...prev, guilds: true }));
     }, (error) => {
       console.error("Error fetching guilds:", error);
       if (error.code === 'permission-denied') {
         setIsOffline(true);
       }
+      setLoadedStates(prev => ({ ...prev, guilds: true }));
     });
 
     // Costumes collection
@@ -104,6 +118,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         defaultData.costume_definitions.forEach((costume, index) => {
           setDoc(doc(firestore, 'costumes', costume.id), { ...costume, order: index }).catch(console.error);
         });
+        setLoadedStates(prev => ({ ...prev, costumes: true }));
         return;
       }
 
@@ -120,11 +135,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
       
       setDbState(prev => ({ ...prev, costume_definitions: costumes }));
+      setLoadedStates(prev => ({ ...prev, costumes: true }));
     }, (error) => {
       console.error("Error fetching costumes:", error);
       if (error.code === 'permission-denied') {
         setIsOffline(true);
       }
+      setLoadedStates(prev => ({ ...prev, costumes: true }));
     });
 
     // Users collection
@@ -134,6 +151,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         Object.entries(defaultData.users).forEach(([username, user]) => {
           setDoc(doc(firestore, 'users', username), user).catch(console.error);
         });
+        setLoadedStates(prev => ({ ...prev, users: true }));
         return;
       }
 
@@ -142,11 +160,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         users[doc.id] = { ...doc.data(), username: doc.id };
       });
       setDbState(prev => ({ ...prev, users }));
+      setLoadedStates(prev => ({ ...prev, users: true }));
     }, (error) => {
       console.error("Error fetching users:", error);
       if (error.code === 'permission-denied') {
         setIsOffline(true);
       }
+      setLoadedStates(prev => ({ ...prev, users: true }));
     });
 
     return () => {
@@ -234,7 +254,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const globalData = {
         costume_definitions: next.costume_definitions,
         users: next.users,
-        guildOrder: next.guildOrder
+        guildOrder: next.guildOrder,
+        settings: next.settings
       };
       setDoc(doc(firestore, 'appData', 'main'), globalData, { merge: true }).catch(console.error);
       return next;
@@ -583,6 +604,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     await updateDoc(doc(firestore, 'users', username), { password });
   };
 
+  const updateSettings = async (data: Partial<Database['settings']>) => {
+    if (isOffline) {
+      setDbState(prev => ({
+        ...prev,
+        settings: { ...prev.settings, ...data }
+      }));
+      return;
+    }
+    await updateDoc(doc(firestore, 'appData', 'main'), {
+      settings: { ...db.settings, ...data }
+    });
+  };
+
   if (!isLoaded) {
     return <div className="min-h-screen flex items-center justify-center bg-stone-100 text-stone-500">載入中...</div>;
   }
@@ -591,7 +625,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     <AppContext.Provider value={{ 
       db, setDb, currentView, setCurrentView, currentUser, setCurrentUser,
       fetchMembers, fetchAllMembers, addMember, updateMemberCostume, updateMember, addGuild, updateGuild, deleteGuild, deleteMember,
-      addCostume, updateCostume, deleteCostume, swapCostumeOrder, resetCostumeOrders, restoreData, updateUserPassword
+      addCostume, updateCostume, deleteCostume, swapCostumeOrder, resetCostumeOrders, restoreData, updateUserPassword, updateSettings
     }}>
       {children}
     </AppContext.Provider>

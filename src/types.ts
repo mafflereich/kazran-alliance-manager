@@ -42,4 +42,8 @@ export interface Database {
   members: Record<string, Member>;
   costume_definitions: Costume[];
   users: Record<string, User>;
+  settings: {
+    sitePassword?: string;
+    redirectUrl?: string;
+  };
 }

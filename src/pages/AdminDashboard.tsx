@@ -4,6 +4,7 @@ import { LogOut, Users, Shield, Sword, Plus, Edit2, Trash2, ArrowUp, ArrowDown, 
 import { Role, Guild, Member, Costume } from '../types';
 import { getTierColor, getTierBorderHoverClass } from '../utils';
 import ConfirmModal from '../components/ConfirmModal';
+import Footer from '../components/Footer';
 
 export default function AdminDashboard() {
   const { db, setDb, setCurrentView, currentUser, setCurrentUser, fetchAllMembers } = useAppContext();
@@ -36,6 +37,12 @@ export default function AdminDashboard() {
       </header>
 
       <main className="max-w-6xl mx-auto p-6">
+        <div className="mb-4 flex gap-4 text-[10px] text-stone-400 uppercase tracking-widest">
+          <span>公會: {Object.keys(db.guilds).length}</span>
+          <span>成員: {Object.keys(db.members).length}</span>
+          <span>服裝: {db.costume_definitions.length}</span>
+          <span>使用者: {Object.keys(db.users).length}</span>
+        </div>
         <div className="flex gap-4 mb-6 border-b border-stone-300 pb-2 overflow-x-auto">
           <TabButton active={activeTab === 'guilds'} onClick={() => setActiveTab('guilds')} icon={<Shield />} label="公會管理" />
           <TabButton active={activeTab === 'costumes'} onClick={() => setActiveTab('costumes')} icon={<Sword />} label="服裝資料庫" />
@@ -54,6 +61,7 @@ export default function AdminDashboard() {
           {activeTab === 'backup' && currentUser === 'admin' && <BackupManager />}
         </div>
       </main>
+      <Footer />
     </div>
   );
 }
@@ -992,11 +1000,28 @@ function CostumesManager() {
 }
 
 function SettingsManager() {
-  const { db, updateUserPassword } = useAppContext();
+  const { db, updateUserPassword, updateSettings } = useAppContext();
   const [editingUser, setEditingUser] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+
+  // Site settings state
+  const [sitePassword, setSitePassword] = useState(db.settings.sitePassword || '');
+  const [redirectUrl, setRedirectUrl] = useState(db.settings.redirectUrl || '');
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+
+  const handleSaveSiteSettings = async () => {
+    setIsSavingSettings(true);
+    try {
+      await updateSettings({ sitePassword, redirectUrl });
+      alert('系統設定已更新');
+    } catch (error: any) {
+      alert(`更新失敗: ${error.message}`);
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
 
   const handleUpdatePassword = async (username: string) => {
     if (!newPassword.trim()) {
@@ -1029,9 +1054,56 @@ function SettingsManager() {
   };
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-6 text-stone-800">帳號密碼管理</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="space-y-10">
+      <div>
+        <h2 className="text-2xl font-bold mb-6 text-stone-800 flex items-center gap-2">
+          <Lock className="w-6 h-6 text-amber-600" />
+          進入系統設定
+        </h2>
+        <div className="bg-stone-50 p-6 rounded-xl border border-stone-200 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-stone-700 mb-2">進入系統密碼</label>
+              <input
+                type="text"
+                className="w-full p-2.5 border border-stone-300 rounded-lg outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                value={sitePassword}
+                onChange={e => setSitePassword(e.target.value)}
+                placeholder="預設為 abc"
+              />
+              <p className="mt-1.5 text-xs text-stone-400">進入網頁時需要輸入的第一層密碼</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-stone-700 mb-2">密碼錯誤跳轉網址</label>
+              <input
+                type="text"
+                className="w-full p-2.5 border border-stone-300 rounded-lg outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                value={redirectUrl}
+                onChange={e => setRedirectUrl(e.target.value)}
+                placeholder="例如: https://www.browndust2.com/"
+              />
+              <p className="mt-1.5 text-xs text-stone-400">當使用者輸入錯誤密碼時，會被傳送到的網址</p>
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <button
+              onClick={handleSaveSiteSettings}
+              disabled={isSavingSettings}
+              className="flex items-center gap-2 px-6 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+            >
+              <Save className="w-5 h-5" />
+              {isSavingSettings ? '儲存中...' : '儲存系統設定'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-2xl font-bold mb-6 text-stone-800 flex items-center gap-2">
+          <User className="w-6 h-6 text-stone-600" />
+          帳號密碼管理
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {(Object.entries(db.users) as [string, any][]).map(([username, user]) => (
           <div key={username} className="p-6 border border-stone-200 rounded-xl bg-stone-50 flex flex-col gap-4">
             <div className="flex justify-between items-center">
@@ -1108,7 +1180,8 @@ function SettingsManager() {
         ))}
       </div>
     </div>
-  );
+  </div>
+);
 }
 
 function BackupManager() {
