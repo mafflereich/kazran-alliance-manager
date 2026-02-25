@@ -74,7 +74,7 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
   });
 
   return (
-    <div className="min-h-screen bg-stone-100 pb-10 flex">
+    <div className="h-screen bg-stone-100 flex overflow-hidden">
       {/* Sidebar Overlay */}
       {isSidebarOpen && (
         <div 
@@ -159,112 +159,114 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
         </header>
 
         <main className="flex-1 overflow-auto p-4">
-          <div className="max-w-full mx-auto">
-            <div className="mb-2 flex items-center justify-between">
-              <div className="text-xs text-stone-400 flex items-center gap-1">
-                <MoveHorizontal className="w-3 h-3" />
-                <span>可左右拖曳或捲動查看完整表格</span>
+          <div className="max-w-full mx-auto min-h-full flex flex-col">
+            <div className="flex-1">
+              <div className="mb-2 flex items-center justify-between">
+                <div className="text-xs text-stone-400 flex items-center gap-1">
+                  <MoveHorizontal className="w-3 h-3" />
+                  <span>可左右拖曳或捲動查看完整表格</span>
+                </div>
               </div>
-            </div>
-            <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
-              <div 
-                ref={scrollRef}
-                className={`overflow-x-auto cursor-grab ${isDragging ? 'cursor-grabbing select-none' : ''}`}
-                onMouseDown={handleMouseDown}
-                onMouseLeave={handleMouseLeave}
-                onMouseUp={handleMouseUp}
-                onMouseMove={handleMouseMove}
-              >
-                <table className="w-full text-left border-collapse min-w-max">
-                  <thead>
-                    <tr className="bg-stone-50 border-b-2 border-stone-200 text-stone-600">
-                      <th className="p-3 font-semibold sticky left-0 bg-stone-50 z-10 border-r border-stone-200 shadow-[1px_0_0_0_#e7e5e4]">成員</th>
-                      {costumes.map(c => (
-                        <th key={c.id} className="p-3 font-semibold text-center text-xs w-24 border-r border-stone-100 last:border-r-0">
-                          {c.imageName && (
-                            <div className="w-[50px] h-[50px] mx-auto mb-2 bg-stone-100 rounded-lg overflow-hidden border border-stone-200">
-                              <img 
-                                src={`https://www.souseihaku.com/characters/${c.imageName}.webp`} 
-                                alt={c.name}
-                                className="w-full h-full object-cover"
-                                referrerPolicy="no-referrer"
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).parentElement!.style.display = 'none';
-                                }}
-                              />
-                            </div>
-                          )}
-                          <div className="truncate w-20 mx-auto" title={c.name}>{c.name}</div>
-                          <div className="text-[10px] text-stone-400 mt-1 truncate w-20 mx-auto" title={c.character}>{c.character}</div>
-                        </th>
-                      ))}
-                      <th className="p-3 font-semibold text-center sticky right-0 bg-stone-50 z-10 border-l border-stone-200 shadow-[-1px_0_0_0_#e7e5e4]">操作</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {members.map(([id, member]: [string, any]) => (
-                      <tr key={id} className="border-b border-stone-100 hover:bg-stone-50 transition-colors group">
-                        <td className="p-3 font-medium text-stone-800 sticky left-0 bg-white group-hover:bg-stone-50 border-r border-stone-200 shadow-[1px_0_0_0_#e7e5e4] transition-colors">
-                          <div className="flex flex-col">
-                            <div className="flex items-center gap-2">
-                              <span title={member.name}>{truncateName(member.name)}</span>
-                              <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
-                                member.role === '會長' ? 'bg-red-100 text-red-800' :
-                                member.role === '副會長' ? 'bg-amber-100 text-amber-800' :
-                                'bg-stone-200 text-stone-700'
-                              }`}>{member.role}</span>
-                            </div>
-                            {member.updatedAt && (
-                              <span className="text-[10px] text-stone-400 mt-0.5">
-                                {formatDate(member.updatedAt)}
-                              </span>
+              <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+                <div 
+                  ref={scrollRef}
+                  className={`overflow-x-auto cursor-grab ${isDragging ? 'cursor-grabbing select-none' : ''}`}
+                  onMouseDown={handleMouseDown}
+                  onMouseLeave={handleMouseLeave}
+                  onMouseUp={handleMouseUp}
+                  onMouseMove={handleMouseMove}
+                >
+                  <table className="w-full text-left border-collapse min-w-max">
+                    <thead>
+                      <tr className="bg-stone-50 border-b-2 border-stone-200 text-stone-600">
+                        <th className="p-3 font-semibold sticky left-0 bg-stone-50 z-10 border-r border-stone-200 shadow-[1px_0_0_0_#e7e5e4]">成員</th>
+                        {costumes.map(c => (
+                          <th key={c.id} className="p-3 font-semibold text-center text-xs w-24 border-r border-stone-100 last:border-r-0">
+                            {c.imageName && (
+                              <div className="w-[50px] h-[50px] mx-auto mb-2 bg-stone-100 rounded-lg overflow-hidden border border-stone-200">
+                                <img 
+                                  src={`https://www.souseihaku.com/characters/${c.imageName}.webp`} 
+                                  alt={c.name}
+                                  className="w-full h-full object-cover"
+                                  referrerPolicy="no-referrer"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).parentElement!.style.display = 'none';
+                                  }}
+                                />
+                              </div>
                             )}
-                          </div>
-                        </td>
-                        {costumes.map(c => {
-                          const record = member.records[c.id];
-                          const hasCostume = record && record.level >= 0;
-                          
-                          let levelColorClass = "bg-amber-500 text-white"; // default for +5
-                          if (hasCostume) {
-                            if (record.level <= 0) levelColorClass = "bg-stone-200 text-stone-600";
-                            else if (record.level <= 2) levelColorClass = "bg-blue-500 text-white";
-                            else if (record.level <= 4) levelColorClass = "bg-purple-500 text-white";
-                          }
-
-                          return (
-                            <td key={c.id} className={`p-0 text-center border-r border-stone-100 last:border-r-0 h-full ${hasCostume ? levelColorClass : ''}`}>
-                              {hasCostume ? (
-                                <div className="flex flex-col items-center justify-center h-full min-h-[60px] py-2 gap-1">
-                                  <span className="font-bold text-sm">+{record.level}</span>
-                                  {record.weapon && <Swords className="w-4 h-4" />}
-                                </div>
-                              ) : (
-                                <div className="flex items-center justify-center h-full min-h-[60px] text-stone-300 text-sm">-</div>
+                            <div className="truncate w-20 mx-auto" title={c.name}>{c.name}</div>
+                            <div className="text-[10px] text-stone-400 mt-1 truncate w-20 mx-auto" title={c.character}>{c.character}</div>
+                          </th>
+                        ))}
+                        <th className="p-3 font-semibold text-center sticky right-0 bg-stone-50 z-10 border-l border-stone-200 shadow-[-1px_0_0_0_#e7e5e4]">操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {members.map(([id, member]: [string, any]) => (
+                        <tr key={id} className="border-b border-stone-100 hover:bg-stone-50 transition-colors group">
+                          <td className="p-3 font-medium text-stone-800 sticky left-0 bg-white group-hover:bg-stone-50 border-r border-stone-200 shadow-[1px_0_0_0_#e7e5e4] transition-colors">
+                            <div className="flex flex-col">
+                              <div className="flex items-center gap-2">
+                                <span title={member.name}>{truncateName(member.name)}</span>
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                                  member.role === '會長' ? 'bg-red-100 text-red-800' :
+                                  member.role === '副會長' ? 'bg-amber-100 text-amber-800' :
+                                  'bg-stone-200 text-stone-700'
+                                }`}>{member.role}</span>
+                              </div>
+                              {member.updatedAt && (
+                                <span className="text-[10px] text-stone-400 mt-0.5">
+                                  {formatDate(member.updatedAt)}
+                                </span>
                               )}
-                            </td>
-                          );
-                        })}
-                        <td className="p-3 text-center sticky right-0 bg-white group-hover:bg-stone-50 border-l border-stone-200 shadow-[-1px_0_0_0_#e7e5e4] transition-colors">
-                          <button 
-                            onClick={() => setEditingMemberId(id)}
-                            className="flex items-center justify-center p-2 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg transition-colors mx-auto"
-                            title="編輯"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                    {members.length === 0 && (
-                      <tr>
-                        <td colSpan={costumes.length + 2} className="p-8 text-center text-stone-500">
-                          該公會目前沒有成員
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                            </div>
+                          </td>
+                          {costumes.map(c => {
+                            const record = member.records[c.id];
+                            const hasCostume = record && record.level >= 0;
+                            
+                            let levelColorClass = "bg-amber-500 text-white"; // default for +5
+                            if (hasCostume) {
+                              if (record.level <= 0) levelColorClass = "bg-stone-200 text-stone-600";
+                              else if (record.level <= 2) levelColorClass = "bg-blue-500 text-white";
+                              else if (record.level <= 4) levelColorClass = "bg-purple-500 text-white";
+                            }
+
+                            return (
+                              <td key={c.id} className={`p-0 text-center border-r border-stone-100 last:border-r-0 h-full ${hasCostume ? levelColorClass : ''}`}>
+                                {hasCostume ? (
+                                  <div className="flex flex-col items-center justify-center h-full min-h-[60px] py-2 gap-1">
+                                    <span className="font-bold text-sm">+{record.level}</span>
+                                    {record.weapon && <Swords className="w-4 h-4" />}
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center justify-center h-full min-h-[60px] text-stone-300 text-sm">-</div>
+                                )}
+                              </td>
+                            );
+                          })}
+                          <td className="p-3 text-center sticky right-0 bg-white group-hover:bg-stone-50 border-l border-stone-200 shadow-[-1px_0_0_0_#e7e5e4] transition-colors">
+                            <button 
+                              onClick={() => setEditingMemberId(id)}
+                              className="flex items-center justify-center p-2 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg transition-colors mx-auto"
+                              title="編輯"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                      {members.length === 0 && (
+                        <tr>
+                          <td colSpan={costumes.length + 2} className="p-8 text-center text-stone-500">
+                            該公會目前沒有成員
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
             <Footer />
