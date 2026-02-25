@@ -3,7 +3,7 @@ import { useAppContext } from '../store';
 import { ChevronLeft, Edit2, Menu, X, Shield } from 'lucide-react';
 import MemberEditModal from '../components/MemberEditModal';
 import { Role } from '../types';
-import { getTierTextColorDark } from '../utils';
+import { getTierTextColorDark, getTierHighlightClass, getTierHoverClass } from '../utils';
 
 export default function GuildDashboard({ guildId }: { guildId: string }) {
   const { db, setCurrentView } = useAppContext();
@@ -92,8 +92,8 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
                           }}
                           className={`w-full text-left px-4 py-2 rounded-lg transition-colors flex justify-between items-center ${
                             id === guildId 
-                              ? 'bg-amber-500/10 text-amber-500 font-medium' 
-                              : 'hover:bg-stone-800 hover:text-white text-stone-300'
+                              ? `${getTierHighlightClass(tier)} font-medium` 
+                              : `${getTierHoverClass(tier)} text-stone-300`
                           }`}
                         >
                           <span>{g.name}</span>
@@ -158,8 +158,8 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
                             <div className="flex items-center gap-2">
                               <span>{member.name}</span>
                               <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
-                                member.role === '會長' ? 'bg-amber-100 text-amber-800' :
-                                member.role === '副會長' ? 'bg-blue-100 text-blue-800' :
+                                member.role === '會長' ? 'bg-red-100 text-red-800' :
+                                member.role === '副會長' ? 'bg-amber-100 text-amber-800' :
                                 'bg-stone-200 text-stone-700'
                               }`}>{member.role}</span>
                             </div>

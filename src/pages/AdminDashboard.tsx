@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAppContext } from '../store';
 import { LogOut, Users, Shield, Sword, Plus, Edit2, Trash2, ArrowUp, ArrowDown, Save, X, ChevronLeft } from 'lucide-react';
 import { Role } from '../types';
-import { getTierColor } from '../utils';
+import { getTierColor, getTierBorderHoverClass } from '../utils';
 
 export default function AdminDashboard() {
   const { db, setDb, setCurrentView } = useAppContext();
@@ -143,7 +143,7 @@ function GuildsManager() {
                 <div 
                   key={id} 
                   onClick={() => { if (!editingGuildId) setSelectedGuildId(id); }}
-                  className={`p-4 border border-stone-200 rounded-xl bg-stone-50 flex flex-col gap-3 transition-colors group ${!editingGuildId ? 'cursor-pointer hover:bg-stone-100 hover:border-amber-300' : ''}`}
+                  className={`p-4 border border-stone-200 rounded-xl bg-stone-50 flex flex-col gap-3 transition-colors group ${!editingGuildId ? `cursor-pointer ${getTierBorderHoverClass(tier)}` : ''}`}
                 >
                   {editingGuildId === id ? (
                     <div className="flex flex-col gap-2">
@@ -420,7 +420,7 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
         </div>
       )}
 
-      {(isAdding || editingId) && (
+      {isAdding && (
         <div className="bg-stone-50 p-4 rounded-xl border border-stone-200 mb-6 flex gap-4 items-end flex-wrap">
           <div className="flex-1 min-w-[150px]">
             <label className="block text-sm font-medium text-stone-600 mb-1">名稱</label>
@@ -483,37 +483,105 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
             </tr>
           </thead>
           <tbody>
-            {members.map(([id, member]: [string, any]) => (
-              <tr key={id} className="border-b border-stone-100 hover:bg-stone-50">
-                <td className="p-3 font-medium text-stone-800">{member.name}</td>
-                <td className="p-3">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    member.role === '會長' ? 'bg-amber-100 text-amber-800' :
-                    member.role === '副會長' ? 'bg-blue-100 text-blue-800' :
-                    'bg-stone-200 text-stone-700'
-                  }`}>
-                    {member.role}
-                  </span>
-                </td>
-                <td className="p-3 text-stone-600 text-sm">{member.note || '-'}</td>
-                <td className="p-3 flex justify-end gap-2">
-                  <button 
-                    onClick={() => startEdit(id)} 
-                    className="p-2 text-stone-500 hover:text-amber-600 transition-colors"
-                    title="編輯"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                  <button 
-                    onClick={() => handleDeleteMember(id)} 
-                    className="p-2 text-stone-500 hover:text-red-600 transition-colors"
-                    title="刪除"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {members.map(([id, member]: [string, any]) => {
+              const isEditing = editingId === id;
+              if (isEditing) {
+                return (
+                  <tr key={id} className="bg-amber-50/50 border-b border-stone-100">
+                    <td className="p-2">
+                      <input 
+                        type="text" 
+                        className="w-full p-1.5 border border-stone-300 rounded bg-white text-sm"
+                        value={formData.name}
+                        onChange={e => setFormData({...formData, name: e.target.value})}
+                        autoFocus
+                      />
+                    </td>
+                    <td className="p-2">
+                      <select 
+                        className="w-full p-1.5 border border-stone-300 rounded bg-white text-sm"
+                        value={formData.role}
+                        onChange={e => setFormData({...formData, role: e.target.value as Role})}
+                      >
+                        <option value="成員">成員</option>
+                        <option value="副會長">副會長</option>
+                        <option value="會長">會長</option>
+                      </select>
+                    </td>
+                    <td className="p-2">
+                      <div className="flex flex-col gap-1">
+                        <select 
+                          className="w-full p-1.5 border border-stone-300 rounded bg-white text-xs mb-1"
+                          value={formData.targetGuildId}
+                          onChange={e => setFormData({...formData, targetGuildId: e.target.value})}
+                        >
+                          {(sortedGuilds as [string, any][]).map(([gId, g]) => (
+                            <option key={gId} value={gId}>{g.name}</option>
+                          ))}
+                        </select>
+                        <input 
+                          type="text" 
+                          className="w-full p-1.5 border border-stone-300 rounded bg-white text-sm"
+                          value={formData.note}
+                          onChange={e => setFormData({...formData, note: e.target.value})}
+                          placeholder="備註"
+                        />
+                      </div>
+                    </td>
+                    <td className="p-2 text-right">
+                      <div className="flex justify-end gap-1">
+                        <button 
+                          onClick={handleSave}
+                          className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                          title="儲存"
+                        >
+                          <Save className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={cancelEdit}
+                          className="p-2 text-stone-400 hover:bg-stone-100 rounded-lg transition-colors"
+                          title="取消"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              }
+
+              return (
+                <tr key={id} className="border-b border-stone-100 hover:bg-stone-50">
+                  <td className="p-3 font-medium text-stone-800">{member.name}</td>
+                  <td className="p-3">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      member.role === '會長' ? 'bg-red-100 text-red-800' :
+                      member.role === '副會長' ? 'bg-amber-100 text-amber-800' :
+                      'bg-stone-200 text-stone-700'
+                    }`}>
+                      {member.role}
+                    </span>
+                  </td>
+                  <td className="p-3 text-stone-600 text-sm">{member.note || '-'}</td>
+                  <td className="p-3 flex justify-end gap-2">
+                    <button 
+                      onClick={() => startEdit(id)} 
+                      className="p-2 text-stone-500 hover:text-amber-600 transition-colors"
+                      title="編輯"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteMember(id)} 
+                      className="p-2 text-stone-500 hover:text-red-600 transition-colors"
+                      title="刪除"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
             {members.length === 0 && (
               <tr>
                 <td colSpan={4} className="p-8 text-center text-stone-500">
@@ -624,7 +692,7 @@ function CostumesManager() {
         {!isBatchAdding ? (
           <>
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-stone-600 mb-1">角色名稱 (Character)</label>
+              <label className="block text-sm font-medium text-stone-600 mb-1">角色名稱</label>
               <input 
                 type="text" 
                 placeholder="例如: 悠絲緹亞" 
@@ -634,7 +702,7 @@ function CostumesManager() {
               />
             </div>
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-stone-600 mb-1">服裝名稱 (Costume)</label>
+              <label className="block text-sm font-medium text-stone-600 mb-1">服裝名稱</label>
               <input 
                 type="text" 
                 placeholder="例如: 劍道社" 

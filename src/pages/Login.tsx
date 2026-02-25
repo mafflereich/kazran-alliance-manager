@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAppContext } from '../store';
 import { Shield, Users, ChevronRight } from 'lucide-react';
-import { getTierColor } from '../utils';
+import { getTierColor, getTierBorderHoverClass, getTierTextHoverClass } from '../utils';
 
 export default function Login() {
   const { db, setCurrentView } = useAppContext();
@@ -50,10 +50,10 @@ export default function Login() {
                         <button
                           key={id}
                           onClick={() => handleGuildSelect(id)}
-                          className="w-full flex items-center justify-between p-4 bg-white border border-stone-200 rounded-xl hover:border-amber-400 hover:shadow-sm transition-all group"
+                          className={`w-full flex items-center justify-between p-4 bg-white border border-stone-200 rounded-xl transition-all group ${getTierBorderHoverClass(tier)}`}
                         >
-                          <span className="font-medium text-stone-800 group-hover:text-amber-700">{guild.name}</span>
-                          <ChevronRight className="w-5 h-5 text-stone-400 group-hover:text-amber-500 transition-colors" />
+                          <span className={`font-medium text-stone-800 transition-colors ${getTierTextHoverClass(tier)}`}>{guild.name}</span>
+                          <ChevronRight className={`w-5 h-5 text-stone-400 transition-colors ${getTierTextHoverClass(tier)}`} />
                         </button>
                       ))}
                     </div>
