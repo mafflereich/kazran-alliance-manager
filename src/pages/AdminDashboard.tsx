@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppContext } from '../store';
-import { LogOut, Users, Shield, Sword, Plus, Edit2, Trash2, ArrowUp, ArrowDown, Save, X, ChevronLeft, Lock, User, AlertCircle, Download, Upload, FileText } from 'lucide-react';
-import { Role, Guild, Member, Costume } from '../types';
+import { LogOut, Users, Shield, Sword, Plus, Edit2, Trash2, ArrowUp, ArrowDown, Save, X, ChevronLeft, Lock, User as UserIcon, AlertCircle, Download, Upload, FileText, RefreshCw } from 'lucide-react';
+import { Role, Guild, Member, Costume, User } from '../types';
 import { getTierColor, getTierBorderHoverClass } from '../utils';
 import ConfirmModal from '../components/ConfirmModal';
 import Footer from '../components/Footer';
@@ -9,6 +9,8 @@ import Footer from '../components/Footer';
 export default function AdminDashboard() {
   const { db, setDb, setCurrentView, currentUser, setCurrentUser, fetchAllMembers } = useAppContext();
   const [activeTab, setActiveTab] = useState<'guilds' | 'costumes' | 'settings' | 'backup'>('guilds');
+
+  const userRole = currentUser ? db.users[currentUser]?.role : 'manager';
 
   useEffect(() => {
     fetchAllMembers();
@@ -27,7 +29,7 @@ export default function AdminDashboard() {
             <Shield className="w-6 h-6 text-amber-500" />
             Kazran 聯盟管理後台
             <span className="text-xs font-normal bg-stone-800 px-2 py-0.5 rounded text-stone-400">
-              Logged in as: {currentUser}
+              Logged in as: {currentUser} ({userRole})
             </span>
           </h1>
           <button onClick={handleLogout} className="flex items-center gap-2 hover:text-amber-400 transition-colors">
@@ -46,7 +48,7 @@ export default function AdminDashboard() {
         <div className="flex gap-4 mb-6 border-b border-stone-300 pb-2 overflow-x-auto">
           <TabButton active={activeTab === 'guilds'} onClick={() => setActiveTab('guilds')} icon={<Shield />} label="公會管理" />
           <TabButton active={activeTab === 'costumes'} onClick={() => setActiveTab('costumes')} icon={<Sword />} label="服裝資料庫" />
-          {currentUser === 'admin' && (
+          {userRole !== 'manager' && (
             <>
               <TabButton active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon={<Lock />} label="帳號設定" />
               <TabButton active={activeTab === 'backup'} onClick={() => setActiveTab('backup')} icon={<Save />} label="備份與還原" />
@@ -57,8 +59,8 @@ export default function AdminDashboard() {
         <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
           {activeTab === 'guilds' && <GuildsManager />}
           {activeTab === 'costumes' && <CostumesManager />}
-          {activeTab === 'settings' && currentUser === 'admin' && <SettingsManager />}
-          {activeTab === 'backup' && currentUser === 'admin' && <BackupManager />}
+          {activeTab === 'settings' && userRole !== 'manager' && <SettingsManager />}
+          {activeTab === 'backup' && userRole !== 'manager' && <BackupManager />}
         </div>
       </main>
       <Footer />
@@ -1000,16 +1002,34 @@ function CostumesManager() {
 }
 
 function SettingsManager() {
-  const { db, updateUserPassword, updateSettings } = useAppContext();
+  const { db, currentUser, updateUserPassword, updateUserRole, addUser, deleteUser, updateSettings } = useAppContext();
   const [editingUser, setEditingUser] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
 
+  // New User state
+  const [showAddUser, setShowAddUser] = useState(false);
+  const [addUsername, setAddUsername] = useState('');
+  const [addPassword, setAddPassword] = useState('');
+  const [addRole, setAddRole] = useState<User['role']>('manager');
+
   // Site settings state
   const [sitePassword, setSitePassword] = useState(db.settings.sitePassword || '');
   const [redirectUrl, setRedirectUrl] = useState(db.settings.redirectUrl || '');
   const [isSavingSettings, setIsSavingSettings] = useState(false);
+
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => { },
+    isDanger: false
+  });
+
+  const closeConfirmModal = () => setConfirmModal(prev => ({ ...prev, isOpen: false }));
+
+  const currentUserRole = currentUser ? db.users[currentUser]?.role : 'manager';
 
   const handleSaveSiteSettings = async () => {
     setIsSavingSettings(true);
@@ -1021,6 +1041,55 @@ function SettingsManager() {
     } finally {
       setIsSavingSettings(false);
     }
+  };
+
+  const handleAddUser = async () => {
+    if (!addUsername.trim() || !addPassword.trim()) {
+      alert('帳號和密碼不能為空');
+      return;
+    }
+    if (db.users[addUsername.trim()]) {
+      alert('帳號已存在');
+      return;
+    }
+
+    try {
+      await addUser({
+        username: addUsername.trim(),
+        password: addPassword.trim(),
+        role: addRole
+      });
+      setShowAddUser(false);
+      setAddUsername('');
+      setAddPassword('');
+      setAddRole('manager');
+      alert('帳號已新增');
+    } catch (error: any) {
+      alert(`新增失敗: ${error.message}`);
+    }
+  };
+
+  const handleDeleteUser = async (username: string) => {
+    if (username === currentUser) {
+      alert('不能刪除自己');
+      return;
+    }
+
+    setConfirmModal({
+      isOpen: true,
+      title: '刪除帳號',
+      message: `確定要刪除帳號 ${username} 嗎？此動作無法復原。`,
+      isDanger: true,
+      onConfirm: async () => {
+        try {
+          await deleteUser(username);
+          closeConfirmModal();
+        } catch (error: any) {
+          alert(`刪除失敗: ${error.message}`);
+          closeConfirmModal();
+        }
+      }
+    });
   };
 
   const handleUpdatePassword = async (username: string) => {
@@ -1046,6 +1115,15 @@ function SettingsManager() {
     }
   };
 
+  const handleUpdateRole = async (username: string, role: User['role']) => {
+    try {
+      await updateUserRole(username, role);
+      alert(`帳號 ${username} 的權限已更新為 ${role}`);
+    } catch (error: any) {
+      alert(`更新失敗: ${error.message}`);
+    }
+  };
+
   const startEdit = (username: string, currentPass: string) => {
     setEditingUser(username);
     setNewPassword(currentPass);
@@ -1053,8 +1131,19 @@ function SettingsManager() {
     setError('');
   };
 
+  // Filter users based on role
+  const visibleUsers = Object.entries(db.users).filter(([username, user]) => {
+    if (currentUserRole === 'creator') return true;
+    if (currentUserRole === 'admin') {
+      // Admin can see everyone except creator
+      return user.role !== 'creator';
+    }
+    return false;
+  });
+
   return (
     <div className="space-y-10">
+      {/* Site Settings */}
       <div>
         <h2 className="text-2xl font-bold mb-6 text-stone-800 flex items-center gap-2">
           <Lock className="w-6 h-6 text-amber-600" />
@@ -1098,90 +1187,184 @@ function SettingsManager() {
         </div>
       </div>
 
+      {/* User Management */}
       <div>
-        <h2 className="text-2xl font-bold mb-6 text-stone-800 flex items-center gap-2">
-          <User className="w-6 h-6 text-stone-600" />
-          帳號密碼管理
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {(Object.entries(db.users) as [string, any][]).map(([username, user]) => (
-          <div key={username} className="p-6 border border-stone-200 rounded-xl bg-stone-50 flex flex-col gap-4">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <User className="w-5 h-5 text-stone-500" />
-                <span className="font-bold text-stone-800">{username}</span>
-                <span className={`text-xs px-2 py-0.5 rounded ${user.role === 'admin' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
-                  {user.role}
-                </span>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-stone-800 flex items-center gap-2">
+            <UserIcon className="w-6 h-6 text-stone-600" />
+            帳號權限管理
+          </h2>
+          <button
+            onClick={() => setShowAddUser(!showAddUser)}
+            className="flex items-center gap-2 px-4 py-2 bg-stone-800 text-white rounded-lg hover:bg-stone-700 transition-colors"
+          >
+            {showAddUser ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+            {showAddUser ? '取消新增' : '新增帳號'}
+          </button>
+        </div>
+
+        {showAddUser && (
+          <div className="mb-8 p-6 bg-amber-50 border border-amber-200 rounded-xl space-y-4">
+            <h3 className="font-bold text-amber-900">新增後台帳號</h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-amber-700 mb-1">帳號</label>
+                <input
+                  type="text"
+                  className="w-full p-2 border border-amber-300 rounded-lg outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                  value={addUsername}
+                  onChange={e => setAddUsername(e.target.value)}
+                  placeholder="帳號名稱"
+                />
               </div>
-            </div>
-
-            {editingUser === username ? (
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-medium text-stone-500 mb-1">新密碼</label>
-                  <input
-                    type="password"
-                    className="w-full p-2 border border-stone-300 rounded-lg outline-none focus:ring-2 focus:ring-amber-500 text-sm"
-                    value={newPassword}
-                    onChange={e => { setNewPassword(e.target.value); setError(''); }}
-                    placeholder="輸入新密碼"
-                    autoFocus
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-stone-500 mb-1">確認新密碼</label>
-                  <input
-                    type="password"
-                    className="w-full p-2 border border-stone-300 rounded-lg outline-none focus:ring-2 focus:ring-amber-500 text-sm"
-                    value={confirmPassword}
-                    onChange={e => { setConfirmPassword(e.target.value); setError(''); }}
-                    placeholder="再次輸入新密碼"
-                  />
-                </div>
-
-                {error && (
-                  <div className="text-red-500 text-xs flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" />
-                    {error}
-                  </div>
-                )}
-
-                <div className="flex gap-2 pt-1">
-                  <button
-                    onClick={() => handleUpdatePassword(username)}
-                    className="flex-1 py-2 bg-stone-800 text-white rounded-lg hover:bg-stone-700 transition-colors text-sm font-medium"
-                  >
-                    儲存
-                  </button>
-                  <button
-                    onClick={() => { setEditingUser(null); setNewPassword(''); setConfirmPassword(''); setError(''); }}
-                    className="flex-1 py-2 bg-stone-200 text-stone-600 rounded-lg hover:bg-stone-300 transition-colors text-sm font-medium"
-                  >
-                    取消
-                  </button>
-                </div>
+              <div>
+                <label className="block text-xs font-medium text-amber-700 mb-1">密碼</label>
+                <input
+                  type="password"
+                  className="w-full p-2 border border-amber-300 rounded-lg outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                  value={addPassword}
+                  onChange={e => setAddPassword(e.target.value)}
+                  placeholder="登入密碼"
+                />
               </div>
-            ) : (
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2 text-stone-500">
-                  <Lock className="w-4 h-4" />
-                  <span className="text-sm">密碼: ••••••••</span>
-                </div>
-                <button
-                  onClick={() => startEdit(username, user.password)}
-                  className="text-amber-600 hover:text-amber-700 text-sm font-medium"
+              <div>
+                <label className="block text-xs font-medium text-amber-700 mb-1">權限身份</label>
+                <select
+                  className="w-full p-2 border border-amber-300 rounded-lg outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                  value={addRole}
+                  onChange={e => setAddRole(e.target.value as User['role'])}
                 >
-                  修改密碼
+                  {currentUserRole === 'creator' && <option value="creator">Creator (最高)</option>}
+                  <option value="admin">Admin (管理)</option>
+                  <option value="manager">Manager (執行)</option>
+                </select>
+              </div>
+              <div className="flex items-end">
+                <button
+                  onClick={handleAddUser}
+                  className="w-full py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium"
+                >
+                  確認新增
                 </button>
               </div>
-            )}
+            </div>
           </div>
-        ))}
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {visibleUsers.map(([username, user]) => (
+            <div key={username} className="p-6 border border-stone-200 rounded-xl bg-stone-50 flex flex-col gap-4 relative">
+              {username !== currentUser && (
+                <button
+                  onClick={() => handleDeleteUser(username)}
+                  className="absolute top-4 right-4 p-1 text-stone-400 hover:text-red-500 transition-colors"
+                  title="刪除帳號"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              )}
+
+              <div className="flex justify-between items-start pr-8">
+                <div className="flex items-center gap-2">
+                  <UserIcon className="w-5 h-5 text-stone-500" />
+                  <span className="font-bold text-stone-800">{username}</span>
+                  {username === currentUser && <span className="text-[10px] bg-stone-200 px-1.5 py-0.5 rounded text-stone-600">YOU</span>}
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                  <span className={`text-xs px-2 py-0.5 rounded font-medium ${user.role === 'creator' ? 'bg-purple-100 text-purple-700' : user.role === 'admin' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+                    }`}>
+                    {user.role.toUpperCase()}
+                  </span>
+                  {editingUser !== username && (
+                    <select
+                      className="text-[10px] bg-transparent border-none text-stone-500 outline-none cursor-pointer hover:text-stone-800"
+                      value={user.role}
+                      onChange={(e) => handleUpdateRole(username, e.target.value as User['role'])}
+                      disabled={user.role === 'creator' && currentUserRole !== 'creator'}
+                    >
+                      {currentUserRole === 'creator' && <option value="creator">變更為 Creator</option>}
+                      <option value="admin">變更為 Admin</option>
+                      <option value="manager">變更為 Manager</option>
+                    </select>
+                  )}
+                </div>
+              </div>
+
+              {editingUser === username ? (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-medium text-stone-500 mb-1">新密碼</label>
+                    <input
+                      type="password"
+                      className="w-full p-2 border border-stone-300 rounded-lg outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+                      value={newPassword}
+                      onChange={e => { setNewPassword(e.target.value); setError(''); }}
+                      placeholder="輸入新密碼"
+                      autoFocus
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-stone-500 mb-1">確認新密碼</label>
+                    <input
+                      type="password"
+                      className="w-full p-2 border border-stone-300 rounded-lg outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+                      value={confirmPassword}
+                      onChange={e => { setConfirmPassword(e.target.value); setError(''); }}
+                      placeholder="再次輸入新密碼"
+                    />
+                  </div>
+
+                  {error && (
+                    <div className="text-red-500 text-xs flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {error}
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      onClick={() => handleUpdatePassword(username)}
+                      className="flex-1 py-2 bg-stone-800 text-white rounded-lg hover:bg-stone-700 transition-colors text-sm font-medium"
+                    >
+                      儲存
+                    </button>
+                    <button
+                      onClick={() => { setEditingUser(null); setNewPassword(''); setConfirmPassword(''); setError(''); }}
+                      className="flex-1 py-2 bg-stone-200 text-stone-600 rounded-lg hover:bg-stone-300 transition-colors text-sm font-medium"
+                    >
+                      取消
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex justify-between items-center mt-auto">
+                  <div className="flex items-center gap-2 text-stone-500">
+                    <Lock className="w-4 h-4" />
+                    <span className="text-sm">密碼: ••••••••</span>
+                  </div>
+                  <button
+                    onClick={() => startEdit(username, user.password)}
+                    className="text-amber-600 hover:text-amber-700 text-sm font-medium"
+                  >
+                    修改密碼
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={closeConfirmModal}
+        isDanger={confirmModal.isDanger}
+      />
     </div>
-  </div>
-);
+  );
 }
 
 function BackupManager() {

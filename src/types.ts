@@ -33,7 +33,7 @@ export interface Costume {
 export interface User {
   username: string;
   password: string;
-  role: 'admin' | 'manager';
+  role: 'creator' | 'admin' | 'manager';
 }
 
 export interface Database {

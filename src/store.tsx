@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Database, Guild, Member, Costume, Role } from './types';
+import { Database, Guild, Member, Costume, Role, User } from './types';
 import { db as firestore } from './firebase';
 import { 
   collection, doc, onSnapshot, setDoc, addDoc, updateDoc, deleteDoc, query, where, getDocs, writeBatch
@@ -14,6 +14,7 @@ const defaultData: Database = {
     { id: "costume_002", name: "莎赫拉查德 (代號S)", character: "Schera" }
   ],
   users: {
+    "creator": { username: "creator", password: "123", role: "creator" },
     "admin": { username: "admin", password: "123", role: "admin" },
     "manager": { username: "manager", password: "123", role: "manager" }
   },
@@ -52,6 +53,9 @@ interface AppContextType {
   resetCostumeOrders: () => Promise<void>;
   restoreData: (guilds: Guild[], members: Member[], costumes: Costume[]) => Promise<void>;
   updateUserPassword: (username: string, password: string) => Promise<void>;
+  updateUserRole: (username: string, role: User['role']) => Promise<void>;
+  addUser: (user: User) => Promise<void>;
+  deleteUser: (username: string) => Promise<void>;
   updateSettings: (data: Partial<Database['settings']>) => Promise<void>;
 }
 
@@ -146,19 +150,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // Users collection
     const unsubUsers = onSnapshot(collection(firestore, 'users'), (snap) => {
-      if (snap.empty && !isOffline) {
-        // Seed default users if empty
-        Object.entries(defaultData.users).forEach(([username, user]) => {
-          setDoc(doc(firestore, 'users', username), user).catch(console.error);
-        });
-        setLoadedStates(prev => ({ ...prev, users: true }));
-        return;
-      }
-
       const users: Record<string, any> = {};
       snap.forEach(doc => {
         users[doc.id] = { ...doc.data(), username: doc.id };
       });
+
+      if (!isOffline) {
+        // Ensure default users exist (especially the new 'creator' role)
+        let needsSeeding = false;
+        Object.entries(defaultData.users).forEach(([username, user]) => {
+          if (!users[username]) {
+            setDoc(doc(firestore, 'users', username), user).catch(console.error);
+            needsSeeding = true;
+          }
+        });
+        if (needsSeeding) return; // Wait for next snapshot
+      }
+
       setDbState(prev => ({ ...prev, users }));
       setLoadedStates(prev => ({ ...prev, users: true }));
     }, (error) => {
@@ -604,6 +612,42 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     await updateDoc(doc(firestore, 'users', username), { password });
   };
 
+  const updateUserRole = async (username: string, role: User['role']) => {
+    if (isOffline) {
+      setDbState(prev => ({
+        ...prev,
+        users: {
+          ...prev.users,
+          [username]: { ...prev.users[username], role }
+        }
+      }));
+      return;
+    }
+    await updateDoc(doc(firestore, 'users', username), { role });
+  };
+
+  const addUser = async (user: User) => {
+    if (isOffline) {
+      setDbState(prev => ({
+        ...prev,
+        users: { ...prev.users, [user.username]: user }
+      }));
+      return;
+    }
+    await setDoc(doc(firestore, 'users', user.username), user);
+  };
+
+  const deleteUser = async (username: string) => {
+    if (isOffline) {
+      setDbState(prev => {
+        const { [username]: _, ...rest } = prev.users;
+        return { ...prev, users: rest };
+      });
+      return;
+    }
+    await deleteDoc(doc(firestore, 'users', username));
+  };
+
   const updateSettings = async (data: Partial<Database['settings']>) => {
     if (isOffline) {
       setDbState(prev => ({
@@ -625,7 +669,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     <AppContext.Provider value={{ 
       db, setDb, currentView, setCurrentView, currentUser, setCurrentUser,
       fetchMembers, fetchAllMembers, addMember, updateMemberCostume, updateMember, addGuild, updateGuild, deleteGuild, deleteMember,
-      addCostume, updateCostume, deleteCostume, swapCostumeOrder, resetCostumeOrders, restoreData, updateUserPassword, updateSettings
+      addCostume, updateCostume, deleteCostume, swapCostumeOrder, resetCostumeOrders, restoreData, updateUserPassword, updateUserRole, addUser, deleteUser, updateSettings
     }}>
       {children}
     </AppContext.Provider>
