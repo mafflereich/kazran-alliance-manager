@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppContext } from '../store';
-import { LogOut, Users, Shield, Sword, Plus, Edit2, Trash2, ArrowUp, ArrowDown, Save, X, ChevronLeft, Lock, User as UserIcon, AlertCircle, Download, Upload, FileText, RefreshCw } from 'lucide-react';
+import { LogOut, Users, Shield, Sword, Plus, Edit2, Trash2, ArrowUp, ArrowDown, Save, X, ChevronLeft, Lock, User as UserIcon, AlertCircle, Download, Upload, FileText, RefreshCw, Wand2 } from 'lucide-react';
 import { Role, Guild, Member, Costume, User } from '../types';
 import { getTierColor, getTierBorderHoverClass } from '../utils';
 import ConfirmModal from '../components/ConfirmModal';
@@ -8,7 +8,7 @@ import Footer from '../components/Footer';
 
 export default function AdminDashboard() {
   const { db, setDb, setCurrentView, currentUser, setCurrentUser, fetchAllMembers } = useAppContext();
-  const [activeTab, setActiveTab] = useState<'guilds' | 'costumes' | 'settings' | 'backup'>('guilds');
+  const [activeTab, setActiveTab] = useState<'guilds' | 'costumes' | 'settings' | 'backup' | 'tools'>('guilds');
 
   const userRole = currentUser ? db.users[currentUser]?.role : 'manager';
 
@@ -52,6 +52,7 @@ export default function AdminDashboard() {
             <>
               <TabButton active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon={<Lock />} label="帳號設定" />
               <TabButton active={activeTab === 'backup'} onClick={() => setActiveTab('backup')} icon={<Save />} label="備份與還原" />
+              <TabButton active={activeTab === 'tools'} onClick={() => setActiveTab('tools')} icon={<Wand2 />} label="便利小功能" />
             </>
           )}
         </div>
@@ -61,9 +62,68 @@ export default function AdminDashboard() {
           {activeTab === 'costumes' && <CostumesManager />}
           {activeTab === 'settings' && userRole !== 'manager' && <SettingsManager />}
           {activeTab === 'backup' && userRole !== 'manager' && <BackupManager />}
+          {activeTab === 'tools' && userRole !== 'manager' && <ToolsManager />}
         </div>
       </main>
       <Footer />
+    </div>
+  );
+}
+
+function ToolsManager() {
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => { },
+    isDanger: false
+  });
+
+  const closeConfirmModal = () => setConfirmModal(prev => ({ ...prev, isOpen: false }));
+
+  const handleAutoTransfer = () => {
+    setConfirmModal({
+      isOpen: true,
+      title: '自動搬運',
+      message: '確定要執行自動搬運嗎？此動作目前不會執行任何實際操作。',
+      isDanger: false,
+      onConfirm: () => {
+        closeConfirmModal();
+      }
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold mb-6 text-stone-800 flex items-center gap-2">
+        <Wand2 className="w-6 h-6 text-amber-600" />
+        便利小功能
+      </h2>
+      
+      <div className="bg-stone-50 p-8 rounded-2xl border border-stone-200 flex flex-col items-center justify-center text-center">
+        <div className="p-4 bg-amber-100 rounded-full text-amber-600 mb-4">
+          <RefreshCw className="w-8 h-8" />
+        </div>
+        <h3 className="text-xl font-bold text-stone-800 mb-2">自動搬運</h3>
+        <p className="text-stone-500 mb-6 max-w-md">
+          此功能可用於自動處理成員資料搬運，目前僅供介面展示。
+        </p>
+        <button
+          onClick={handleAutoTransfer}
+          className="px-8 py-3 bg-amber-600 text-white rounded-xl font-bold hover:bg-amber-700 transition-all active:scale-95 shadow-md"
+        >
+          開始自動搬運
+        </button>
+      </div>
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={closeConfirmModal}
+        isDanger={confirmModal.isDanger}
+      />
     </div>
   );
 }
