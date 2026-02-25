@@ -31,6 +31,7 @@ interface AppContextType {
   
   // New functions
   fetchMembers: (guildId: string) => void;
+  fetchAllMembers: () => Promise<void>;
   addMember: (guildId: string, name: string, role?: Role, note?: string) => Promise<void>;
   updateMemberCostume: (memberId: string, costumeId: string, level: number, weapon: boolean) => Promise<void>;
   updateMember: (memberId: string, data: Partial<Member>) => Promise<void>;
@@ -45,6 +46,7 @@ interface AppContextType {
   deleteCostume: (id: string) => Promise<void>;
   swapCostumeOrder: (id1: string, id2: string) => Promise<void>;
   resetCostumeOrders: () => Promise<void>;
+  restoreData: (guilds: Guild[], members: Member[], costumes: Costume[]) => Promise<void>;
   updateUserPassword: (username: string, password: string) => Promise<void>;
 }
 
@@ -189,6 +191,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
     
     setMemberUnsub(() => unsub);
+  };
+
+  const fetchAllMembers = async () => {
+    if (isOffline) return;
+
+    const querySnapshot = await getDocs(collection(firestore, 'members'));
+    const allMembers: Record<string, Member> = {};
+    querySnapshot.forEach((doc) => {
+      allMembers[doc.id] = { ...doc.data() as Member, id: doc.id };
+    });
+    setDbState(prev => ({ ...prev, members: allMembers }));
   };
 
   // Cleanup subscription on unmount
@@ -478,6 +491,83 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     await updateDoc(doc(firestore, 'costumes', id2), { order: order1 });
   };
 
+  const restoreData = async (guilds: Guild[], members: Member[], costumes: Costume[]) => {
+    if (isOffline) {
+      // Offline mode: update local state directly
+      setDbState(prev => {
+        const newGuilds = { ...prev.guilds };
+        guilds.forEach(g => { if (g.id) newGuilds[g.id] = g; });
+
+        const newMembers = { ...prev.members };
+        members.forEach(m => { if (m.id) newMembers[m.id] = m; });
+
+        // Merge costumes by ID
+        const newCostumes = [...prev.costume_definitions];
+        costumes.forEach(c => {
+          const idx = newCostumes.findIndex(existing => existing.id === c.id);
+          if (idx >= 0) {
+            newCostumes[idx] = c;
+          } else {
+            newCostumes.push(c);
+          }
+        });
+
+        return {
+          ...prev,
+          guilds: newGuilds,
+          members: newMembers,
+          costume_definitions: newCostumes
+        };
+      });
+      return;
+    }
+
+    // Firestore batch updates
+    // We use a helper to process in chunks of 450 to stay under the 500 limit
+    const BATCH_SIZE = 450;
+    let batch = writeBatch(firestore);
+    let count = 0;
+
+    const commitBatch = async () => {
+      if (count > 0) {
+        await batch.commit();
+        batch = writeBatch(firestore);
+        count = 0;
+      }
+    };
+
+    try {
+      for (const g of guilds) {
+        if (!g.id) continue;
+        const ref = doc(firestore, 'guilds', g.id);
+        batch.set(ref, g, { merge: true });
+        count++;
+        if (count >= BATCH_SIZE) await commitBatch();
+      }
+
+      for (const m of members) {
+        if (!m.id) continue;
+        const ref = doc(firestore, 'members', m.id);
+        batch.set(ref, m, { merge: true });
+        count++;
+        if (count >= BATCH_SIZE) await commitBatch();
+      }
+
+      for (const c of costumes) {
+        const ref = doc(firestore, 'costumes', c.id);
+        batch.set(ref, c, { merge: true });
+        count++;
+        if (count >= BATCH_SIZE) await commitBatch();
+      }
+
+      // Commit any remaining operations
+      await commitBatch();
+    } catch (error) {
+      console.error("Error restoring data:", error);
+      throw error;
+    }
+  };
+
   const updateUserPassword = async (username: string, password: string) => {
     if (isOffline) {
       setDbState(prev => ({
@@ -500,8 +590,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   return (
     <AppContext.Provider value={{ 
       db, setDb, currentView, setCurrentView, currentUser, setCurrentUser,
-      fetchMembers, addMember, updateMemberCostume, updateMember, addGuild, updateGuild, deleteGuild, deleteMember,
-      addCostume, updateCostume, deleteCostume, swapCostumeOrder, resetCostumeOrders, updateUserPassword
+      fetchMembers, fetchAllMembers, addMember, updateMemberCostume, updateMember, addGuild, updateGuild, deleteGuild, deleteMember,
+      addCostume, updateCostume, deleteCostume, swapCostumeOrder, resetCostumeOrders, restoreData, updateUserPassword
     }}>
       {children}
     </AppContext.Provider>

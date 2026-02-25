@@ -37,7 +37,7 @@ export default function Login() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-stone-200 p-4">
       <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-5xl transition-all duration-300">
-        <h1 className="text-3xl font-bold text-center mb-8 text-stone-800">Karzan 聯盟系統</h1>
+        <h1 className="text-3xl font-bold text-center mb-8 text-stone-800">Kazran 聯盟系統</h1>
         
         <div className="space-y-8">
           {!isAdminMode ? (

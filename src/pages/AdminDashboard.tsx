@@ -1,13 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAppContext } from '../store';
-import { LogOut, Users, Shield, Sword, Plus, Edit2, Trash2, ArrowUp, ArrowDown, Save, X, ChevronLeft, Lock, User, AlertCircle } from 'lucide-react';
-import { Role } from '../types';
+import { LogOut, Users, Shield, Sword, Plus, Edit2, Trash2, ArrowUp, ArrowDown, Save, X, ChevronLeft, Lock, User, AlertCircle, Download, Upload, FileText } from 'lucide-react';
+import { Role, Guild, Member, Costume } from '../types';
 import { getTierColor, getTierBorderHoverClass } from '../utils';
 import ConfirmModal from '../components/ConfirmModal';
 
 export default function AdminDashboard() {
-  const { db, setDb, setCurrentView, currentUser, setCurrentUser } = useAppContext();
-  const [activeTab, setActiveTab] = useState<'guilds' | 'costumes' | 'settings'>('guilds');
+  const { db, setDb, setCurrentView, currentUser, setCurrentUser, fetchAllMembers } = useAppContext();
+  const [activeTab, setActiveTab] = useState<'guilds' | 'costumes' | 'settings' | 'backup'>('guilds');
+
+  useEffect(() => {
+    fetchAllMembers();
+  }, []);
 
   const handleLogout = () => {
     setCurrentUser(null);
@@ -20,7 +24,7 @@ export default function AdminDashboard() {
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <h1 className="text-xl font-bold flex items-center gap-2">
             <Shield className="w-6 h-6 text-amber-500" />
-            Karzan 聯盟管理後台
+            Kazran 聯盟管理後台
             <span className="text-xs font-normal bg-stone-800 px-2 py-0.5 rounded text-stone-400">
               Logged in as: {currentUser}
             </span>
@@ -32,11 +36,14 @@ export default function AdminDashboard() {
       </header>
 
       <main className="max-w-6xl mx-auto p-6">
-        <div className="flex gap-4 mb-6 border-b border-stone-300 pb-2">
+        <div className="flex gap-4 mb-6 border-b border-stone-300 pb-2 overflow-x-auto">
           <TabButton active={activeTab === 'guilds'} onClick={() => setActiveTab('guilds')} icon={<Shield />} label="公會管理" />
           <TabButton active={activeTab === 'costumes'} onClick={() => setActiveTab('costumes')} icon={<Sword />} label="服裝資料庫" />
           {currentUser === 'admin' && (
-            <TabButton active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon={<Lock />} label="帳號設定" />
+            <>
+              <TabButton active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon={<Lock />} label="帳號設定" />
+              <TabButton active={activeTab === 'backup'} onClick={() => setActiveTab('backup')} icon={<Save />} label="備份與還原" />
+            </>
           )}
         </div>
 
@@ -44,6 +51,7 @@ export default function AdminDashboard() {
           {activeTab === 'guilds' && <GuildsManager />}
           {activeTab === 'costumes' && <CostumesManager />}
           {activeTab === 'settings' && currentUser === 'admin' && <SettingsManager />}
+          {activeTab === 'backup' && currentUser === 'admin' && <BackupManager />}
         </div>
       </main>
     </div>
@@ -64,8 +72,9 @@ function TabButton({ active, onClick, icon, label }: { active: boolean, onClick:
 }
 
 function GuildsManager() {
-  const { db, addGuild, updateGuild, deleteGuild } = useAppContext();
+  const { db, addGuild, updateGuild, deleteGuild, fetchAllMembers } = useAppContext();
   const [newGuildName, setNewGuildName] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   const [selectedGuildId, setSelectedGuildId] = useState<string | null>(null);
   const [editingGuildId, setEditingGuildId] = useState<string | null>(null);
   const [editGuildName, setEditGuildName] = useState('');
@@ -84,12 +93,15 @@ function GuildsManager() {
 
   const handleAddGuild = async () => {
     if (!newGuildName.trim()) return;
+    setIsSaving(true);
     try {
       await addGuild(newGuildName.trim());
       setNewGuildName('');
     } catch (error: any) {
       console.error("Error adding guild:", error);
       alert(`新增公會失敗: ${error.message}`);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -150,8 +162,13 @@ function GuildsManager() {
     return orderA - orderB;
   });
 
+  const handleBackFromMembers = () => {
+    setSelectedGuildId(null);
+    fetchAllMembers();
+  };
+
   if (selectedGuildId) {
-    return <GuildMembersManager guildId={selectedGuildId} onBack={() => setSelectedGuildId(null)} />;
+    return <GuildMembersManager guildId={selectedGuildId} onBack={handleBackFromMembers} />;
   }
 
   return (
@@ -166,8 +183,8 @@ function GuildsManager() {
           value={newGuildName}
           onChange={e => setNewGuildName(e.target.value)}
         />
-        <button onClick={handleAddGuild} className="px-4 py-2 bg-stone-800 text-white rounded-lg hover:bg-stone-700 flex items-center gap-2">
-          <Plus className="w-5 h-5" /> 新增公會
+        <button onClick={handleAddGuild} disabled={isSaving} className="px-4 py-2 bg-stone-800 text-white rounded-lg hover:bg-stone-700 flex items-center gap-2 disabled:opacity-50">
+          {isSaving ? '儲存中...' : <><Plus className="w-5 h-5" /> 新增公會</>}
         </button>
       </div>
 
@@ -263,6 +280,7 @@ function GuildsManager() {
 function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () => void }) {
   const { db, fetchMembers, addMember, updateMember, deleteMember } = useAppContext();
   const [isAdding, setIsAdding] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
@@ -338,7 +356,7 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
       alert(error);
       return;
     }
-
+    setIsSaving(true);
     try {
       if (editingId) {
         await updateMember(editingId, {
@@ -356,6 +374,8 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
     } catch (error: any) {
       console.error("Error saving member:", error);
       alert(`儲存成員失敗: ${error.message}`);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -397,7 +417,7 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
   const handleBatchAdd = async () => {
     if (!batchInput.trim()) return;
     const lines = batchInput.split('\n').map(l => l.trim()).filter(l => l);
-
+    setIsSaving(true);
     try {
       // Batch add logic
       for (const line of lines) {
@@ -420,6 +440,8 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
     } catch (error: any) {
       console.error("Error batch adding members:", error);
       alert(`批量新增失敗: ${error.message}`);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -457,7 +479,9 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
             onChange={e => setBatchInput(e.target.value)}
           />
           <div className="flex gap-2 justify-end">
-            <button onClick={handleBatchAdd} className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700">確認新增</button>
+            <button onClick={handleBatchAdd} disabled={isSaving} className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50">
+              {isSaving ? '儲存中...' : '確認新增'}
+            </button>
             <button onClick={() => { setIsBatchAdding(false); setBatchInput(''); }} className="px-4 py-2 bg-stone-300 text-stone-800 rounded-lg hover:bg-stone-400">取消</button>
           </div>
         </div>
@@ -509,7 +533,9 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
             />
           </div>
           <div className="flex gap-2">
-            <button onClick={handleSave} className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700">儲存</button>
+            <button onClick={handleSave} disabled={isSaving} className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50">
+              {isSaving ? '儲存中...' : '儲存'}
+            </button>
             <button onClick={cancelEdit} className="px-4 py-2 bg-stone-300 text-stone-800 rounded-lg hover:bg-stone-400">取消</button>
           </div>
         </div>
@@ -659,6 +685,7 @@ function CostumesManager() {
   const [editImageName, setEditImageName] = useState('');
   const [isBatchAdding, setIsBatchAdding] = useState(false);
   const [batchInput, setBatchInput] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
@@ -707,6 +734,8 @@ function CostumesManager() {
     } catch (error: any) {
       console.error("Error batch adding costumes:", error);
       alert(`批量新增服裝失敗: ${error.message}`);
+    } finally {
+      setIsSaving(false);
     }
   };
 
