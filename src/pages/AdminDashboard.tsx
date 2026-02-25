@@ -600,9 +600,11 @@ function CostumesManager() {
   const { db, setDb } = useAppContext();
   const [newChar, setNewChar] = useState('');
   const [newName, setNewName] = useState('');
+  const [newImageName, setNewImageName] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editChar, setEditChar] = useState('');
   const [editName, setEditName] = useState('');
+  const [editImageName, setEditImageName] = useState('');
   const [isBatchAdding, setIsBatchAdding] = useState(false);
   const [batchInput, setBatchInput] = useState('');
 
@@ -613,11 +615,12 @@ function CostumesManager() {
       ...prev,
       costume_definitions: [
         ...prev.costume_definitions,
-        { id: newId, character: newChar.trim(), name: newName.trim() }
+        { id: newId, character: newChar.trim(), name: newName.trim(), imageName: newImageName.trim() }
       ]
     }));
     setNewChar('');
     setNewName('');
+    setNewImageName('');
   };
 
   const handleBatchAdd = () => {
@@ -626,11 +629,13 @@ function CostumesManager() {
     const newCostumes = lines.map((line, index) => {
       const parts = line.split(/[,，\t]/).map(s => s.trim());
       const char = parts[0];
-      const name = parts.slice(1).join(',').trim() || char;
+      const name = parts[1] || char;
+      const imageName = parts[2] || '';
       return {
         id: `costume_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 5)}`,
         character: char,
-        name: name
+        name: name,
+        imageName: imageName
       };
     });
 
@@ -658,6 +663,7 @@ function CostumesManager() {
     setEditingId(costume.id);
     setEditChar(costume.character);
     setEditName(costume.name);
+    setEditImageName(costume.imageName || '');
   };
 
   const saveEdit = () => {
@@ -665,7 +671,7 @@ function CostumesManager() {
     setDb(prev => ({
       ...prev,
       costume_definitions: prev.costume_definitions.map(c => 
-        c.id === editingId ? { ...c, character: editChar.trim(), name: editName.trim() } : c
+        c.id === editingId ? { ...c, character: editChar.trim(), name: editName.trim(), imageName: editImageName.trim() } : c
       )
     }));
     setEditingId(null);
@@ -711,6 +717,16 @@ function CostumesManager() {
                 onChange={e => setNewName(e.target.value)}
               />
             </div>
+            <div className="flex-1 min-w-[200px]">
+              <label className="block text-sm font-medium text-stone-600 mb-1">圖片名稱 (選填)</label>
+              <input 
+                type="text" 
+                placeholder="例如: Lathel_1" 
+                className="w-full p-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+                value={newImageName}
+                onChange={e => setNewImageName(e.target.value)}
+              />
+            </div>
             <div className="flex gap-2">
               <button onClick={handleAdd} className="px-4 py-2 bg-stone-800 text-white rounded-lg hover:bg-stone-700 flex items-center gap-2 h-[42px]">
                 <Plus className="w-5 h-5" /> 新增
@@ -722,10 +738,10 @@ function CostumesManager() {
           </>
         ) : (
           <div className="w-full flex flex-col gap-2">
-            <label className="block text-sm font-medium text-stone-600">批量新增服裝 (每行一筆，格式: 角色名稱, 服裝名稱)</label>
+            <label className="block text-sm font-medium text-stone-600">批量新增服裝 (每行一筆，格式: 角色名稱, 服裝名稱, 圖片名稱)</label>
             <textarea 
               className="w-full p-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none min-h-[100px]"
-              placeholder="悠絲緹亞, 劍道社&#10;莎赫拉查德, 代號S"
+              placeholder="悠絲緹亞, 劍道社, Lathel_1&#10;莎赫拉查德, 代號S, Scheherazade_1"
               value={batchInput}
               onChange={e => setBatchInput(e.target.value)}
             />
@@ -744,23 +760,45 @@ function CostumesManager() {
               <div className="flex-1 flex gap-2 flex-wrap">
                 <input 
                   type="text" 
-                  className="flex-1 min-w-[150px] p-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+                  className="flex-1 min-w-[120px] p-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
                   value={editChar}
                   onChange={e => setEditChar(e.target.value)}
                   placeholder="角色名稱"
                 />
                 <input 
                   type="text" 
-                  className="flex-1 min-w-[150px] p-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+                  className="flex-1 min-w-[120px] p-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
                   value={editName}
                   onChange={e => setEditName(e.target.value)}
                   placeholder="服裝名稱"
                 />
+                <input 
+                  type="text" 
+                  className="flex-1 min-w-[120px] p-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+                  value={editImageName}
+                  onChange={e => setEditImageName(e.target.value)}
+                  placeholder="圖片名稱"
+                />
               </div>
             ) : (
-              <div className="flex-1 flex flex-col">
-                <span className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">{costume.character}</span>
-                <span className="font-medium text-stone-800">{costume.name}</span>
+              <div className="flex-1 flex items-center gap-4">
+                {costume.imageName && (
+                  <div className="w-[50px] h-[50px] bg-stone-100 rounded-lg overflow-hidden border border-stone-200 flex-shrink-0">
+                    <img 
+                      src={`https://www.souseihaku.com/characters/${costume.imageName}.webp`} 
+                      alt={costume.name}
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  </div>
+                )}
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">{costume.character}</span>
+                  <span className="font-medium text-stone-800">{costume.name}</span>
+                </div>
               </div>
             )}
             

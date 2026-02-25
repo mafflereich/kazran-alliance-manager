@@ -83,8 +83,23 @@ export default function MemberEditModal({ memberId, onClose }: { memberId: strin
                   const record = localRecords[costume.id] || { level: -1, weapon: false };
                   return (
                     <div key={costume.id} className="p-4 flex flex-col gap-3 hover:bg-stone-50/50 transition-colors">
-                      <div className="font-medium text-stone-800">
-                        {costume.name}
+                      <div className="flex items-center gap-3">
+                        {costume.imageName && (
+                          <div className="w-[40px] h-[40px] bg-stone-100 rounded-lg overflow-hidden border border-stone-200 flex-shrink-0">
+                            <img 
+                              src={`https://www.souseihaku.com/characters/${costume.imageName}.webp`} 
+                              alt={costume.name}
+                              className="w-full h-full object-cover"
+                              referrerPolicy="no-referrer"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).parentElement!.style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        )}
+                        <div className="font-medium text-stone-800">
+                          {costume.name}
+                        </div>
                       </div>
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-2 flex-1 flex-wrap">

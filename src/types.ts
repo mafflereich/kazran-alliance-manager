@@ -24,6 +24,7 @@ export interface Costume {
   id: string;
   name: string;
   character: string;
+  imageName?: string;
 }
 
 export interface Database {

@@ -143,6 +143,19 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
                       <th className="p-3 font-semibold sticky left-0 bg-stone-50 z-10 border-r border-stone-200 shadow-[1px_0_0_0_#e7e5e4]">成員</th>
                       {costumes.map(c => (
                         <th key={c.id} className="p-3 font-semibold text-center text-xs w-24 border-r border-stone-100 last:border-r-0">
+                          {c.imageName && (
+                            <div className="w-[50px] h-[50px] mx-auto mb-2 bg-stone-100 rounded-lg overflow-hidden border border-stone-200">
+                              <img 
+                                src={`https://www.souseihaku.com/characters/${c.imageName}.webp`} 
+                                alt={c.name}
+                                className="w-full h-full object-cover"
+                                referrerPolicy="no-referrer"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).parentElement!.style.display = 'none';
+                                }}
+                              />
+                            </div>
+                          )}
                           <div className="truncate w-20 mx-auto" title={c.name}>{c.name}</div>
                           <div className="text-[10px] text-stone-400 mt-1 truncate w-20 mx-auto" title={c.character}>{c.character}</div>
                         </th>
