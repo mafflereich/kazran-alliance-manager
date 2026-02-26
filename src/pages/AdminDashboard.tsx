@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAppContext } from '../store';
 import { doc, getDoc, updateDoc, deleteField } from 'firebase/firestore';
 import { db as firestore } from '../firebase';
-import { LogOut, Users, Shield, Sword, Plus, Edit2, Trash2, ArrowUp, ArrowDown, Save, X, ChevronLeft, Lock, User as UserIcon, AlertCircle, Download, Upload, FileText, RefreshCw, Wand2, GripVertical } from 'lucide-react';
+import { LogOut, Users, Shield, Sword, Plus, Edit2, Trash2, ArrowUp, ArrowDown, Save, X, ChevronLeft, Lock, User as UserIcon, AlertCircle, Download, Upload, FileText, RefreshCw, Wand2, GripVertical, Check } from 'lucide-react';
 import { Role, Guild, Member, Costume, User, Character } from '../types';
 import { getTierColor, getTierBorderHoverClass, getImageUrl } from '../utils';
 import ConfirmModal from '../components/ConfirmModal';
@@ -1109,6 +1109,7 @@ function CostumesManager() {
   const [orderedCharacters, setOrderedCharacters] = useState<Character[]>([]);
   const [isReorderingCostumes, setIsReorderingCostumes] = useState(false);
   const [orderedCostumes, setOrderedCostumes] = useState<Costume[]>([]);
+  const [saveSuccess, setSaveSuccess] = useState<'character' | 'costume' | null>(null);
 
   const [inputModal, setInputModal] = useState<{
     isOpen: boolean;
@@ -1140,7 +1141,8 @@ function CostumesManager() {
         }
       }
       setIsReorderingCharacters(false);
-      alert('角色排序已更新');
+      setSaveSuccess('character');
+      setTimeout(() => setSaveSuccess(null), 2000);
     } catch (error: any) {
       alert(`更新排序失敗: ${error.message}`);
     }
@@ -1155,7 +1157,8 @@ function CostumesManager() {
         }
       }
       setIsReorderingCostumes(false);
-      alert('服裝排序已更新');
+      setSaveSuccess('costume');
+      setTimeout(() => setSaveSuccess(null), 2000);
     } catch (error: any) {
       alert(`更新排序失敗: ${error.message}`);
     }
@@ -1295,6 +1298,11 @@ function CostumesManager() {
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold">角色</h3>
             <div className="flex gap-1">
+              {saveSuccess === 'character' && (
+                <div className="p-1.5 text-emerald-600 flex items-center justify-center" title="儲存成功">
+                  <Check className="w-4 h-4" />
+                </div>
+              )}
               <button
                 onClick={() => isReorderingCharacters ? handleSaveCharacterOrder() : setIsReorderingCharacters(true)}
                 className={`p-1.5 rounded-lg transition-colors ${isReorderingCharacters ? 'bg-amber-200 text-amber-800' : 'bg-stone-200 hover:bg-stone-300 text-stone-700'}`}
@@ -1345,6 +1353,11 @@ function CostumesManager() {
             <h3 className="text-lg font-semibold">{selectedCharacter?.name || '服裝'}</h3>
             {selectedCharacterId && (
               <div className="flex gap-1">
+                {saveSuccess === 'costume' && (
+                  <div className="p-1.5 text-emerald-600 flex items-center justify-center" title="儲存成功">
+                    <Check className="w-4 h-4" />
+                  </div>
+                )}
                 <button
                   onClick={() => isReorderingCostumes ? handleSaveCostumeOrder() : setIsReorderingCostumes(true)}
                   className={`p-1.5 rounded-lg transition-colors ${isReorderingCostumes ? 'bg-amber-200 text-amber-800' : 'bg-stone-200 hover:bg-stone-300 text-stone-700'}`}
