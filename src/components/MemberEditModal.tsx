@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../store';
 import { X, Save, CheckCircle2, Swords } from 'lucide-react';
-import { CostumeRecord } from '../types';
 import { getImageUrl } from '../utils';
 
 export default function MemberEditModal({ memberId, onClose }: { memberId: string, onClose: () => void }) {
-  const { db, updateMemberCostumeLevel, updateMemberExclusiveWeapon } = useAppContext();
+  const { db, updateMember } = useAppContext();
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -13,29 +12,17 @@ export default function MemberEditModal({ memberId, onClose }: { memberId: strin
 
   if (!member) return null;
 
-  const handleRecordChange = async (costumeId: string, level: number) => {
-    try {
-      await updateMemberCostumeLevel(memberId, costumeId, level);
-    } catch (error: any) {
-      console.error("Error updating costume level:", error);
-      alert(`更新服裝練度失敗: ${error.message}`);
-    }
-  };
-
-  const handleWeaponChange = async (characterId: string, hasWeapon: boolean) => {
-    try {
-      await updateMemberExclusiveWeapon(memberId, characterId, hasWeapon);
-    } catch (error: any) {
-      console.error("Error updating exclusive weapon:", error);
-      alert(`更新專武失敗: ${error.message}`);
-    }
-  };
+  const [records, setRecords] = useState(member.records ?? {});
+  const [exclusiveWeapons, setExclusiveWeapons] = useState(member.exclusiveWeapons ?? {});
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
       // The context now handles updates directly, so we just need to close.
       setShowSuccess(true);
+
+      await updateMember(memberId, { records, exclusiveWeapons });
+
       setTimeout(() => {
         setShowSuccess(false);
         onClose();
@@ -73,7 +60,8 @@ export default function MemberEditModal({ memberId, onClose }: { memberId: strin
 
         <div className="p-6 overflow-y-auto flex-1 space-y-6">
           {characters.map(character => {
-            const hasExclusiveWeapon = member.exclusiveWeapons?.[character.id] ?? false;
+            const hasExclusiveWeapon = exclusiveWeapons[character.id] ?? false;
+
             const characterCostumes = Object.values(db.costumes).filter(c => c.characterId === character.id).sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
             return (
               <div key={character.id} className={`bg-white rounded-xl shadow-sm border ${hasExclusiveWeapon ? 'border-orange-400' : 'border-stone-200'} overflow-hidden`}>
@@ -87,7 +75,7 @@ export default function MemberEditModal({ memberId, onClose }: { memberId: strin
                         type="checkbox"
                         className="peer sr-only"
                         checked={hasExclusiveWeapon}
-                        onChange={(e) => handleWeaponChange(character.id, e.target.checked)}
+                        onChange={(e) => setExclusiveWeapons({ ...exclusiveWeapons, [character.id]: e.target.checked })}
                       />
                       <div className="w-10 h-6 bg-stone-200 rounded-full peer peer-checked:bg-amber-500 transition-colors shadow-inner"></div>
                       <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-md"></div>
@@ -96,7 +84,8 @@ export default function MemberEditModal({ memberId, onClose }: { memberId: strin
                 </div>
                 <div className="divide-y divide-stone-100">
                   {characterCostumes.map(costume => {
-                    const record = member.records?.[costume.id] || { level: -1 };
+                    const record = records[costume.id] || { level: -1 };
+
                     return (
                       <div key={costume.id} className="p-4 flex flex-col gap-3 hover:bg-stone-50/50 transition-colors">
                         <div className="flex items-center gap-3">
@@ -138,7 +127,7 @@ export default function MemberEditModal({ memberId, onClose }: { memberId: strin
                                 return (
                                   <button
                                     key={opt.val}
-                                    onClick={() => handleRecordChange(costume.id, opt.val)}
+                                    onClick={() => setRecords({ ...records, [costume.id]: { level: opt.val } })}
                                     className={`px-3 py-1.5 text-sm font-bold rounded-lg transition-all ${record.level == opt.val
                                       ? activeColorClass
                                       : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
