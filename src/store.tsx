@@ -316,10 +316,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     const memberRef = doc(firestore, 'members', memberId);
-    await updateDoc(memberRef, {
-      [`records.${costumeId}`]: { level },
+    await setDoc(memberRef, {
+      records: {
+        [costumeId]: { level }
+      },
       updatedAt: Date.now()
-    });
+    }, { merge: true });
   };
 
   const updateMember = async (memberId: string, data: Partial<Member>) => {

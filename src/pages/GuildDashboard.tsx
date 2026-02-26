@@ -245,6 +245,7 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
                           {costumes.map(c => {
                             const record = member.records[c.id];
                             const hasCostume = record && record.level >= 0;
+                            const hasExclusiveWeapon = member.exclusiveWeapons?.[c.characterId] ?? false;
                             
                             let levelColorClass = "bg-orange-400 text-white"; // default for +5
                             if (hasCostume) {
@@ -258,10 +259,13 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
                                 {hasCostume ? (
                                   <div className="flex flex-col items-center justify-center h-full min-h-[60px] py-2 gap-1">
                                     <span className="font-bold text-sm">+{record.level}</span>
-                                    {record.weapon && <Swords className="w-4 h-4" />}
+                                    {hasExclusiveWeapon && <Swords className="w-4 h-4" />}
                                   </div>
                                 ) : (
-                                  <div className="flex items-center justify-center h-full min-h-[60px] text-stone-300 text-sm">-</div>
+                                  <div className="flex flex-col items-center justify-center h-full min-h-[60px] py-2 gap-1 text-stone-300">
+                                    <span className="text-sm">-</span>
+                                    {hasExclusiveWeapon && <Swords className="w-4 h-4 text-amber-500/50" />}
+                                  </div>
                                 )}
                               </td>
                             );

@@ -13,8 +13,13 @@ export default function MemberEditModal({ memberId, onClose }: { memberId: strin
 
   if (!member) return null;
 
-  const handleRecordChange = (costumeId: string, level: number) => {
-    updateMemberCostumeLevel(memberId, costumeId, level);
+  const handleRecordChange = async (costumeId: string, level: number) => {
+    try {
+      await updateMemberCostumeLevel(memberId, costumeId, level);
+    } catch (error: any) {
+      console.error("Error updating costume level:", error);
+      alert(`更新服裝練度失敗: ${error.message}`);
+    }
   };
   
   const handleWeaponChange = async (characterId: string, hasWeapon: boolean) => {
