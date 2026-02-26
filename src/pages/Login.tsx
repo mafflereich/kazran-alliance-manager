@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../store';
 import { Shield, Users, ChevronRight, Lock, User, AlertCircle } from 'lucide-react';
 import { getTierColor, getTierBorderHoverClass, getTierTextHoverClass } from '../utils';
@@ -13,9 +13,20 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    const unlockTimestamp = localStorage.getItem('siteUnlockTimestamp');
+    if (unlockTimestamp) {
+      const sevenDaysInMillis = 7 * 24 * 60 * 60 * 1000;
+      if (Date.now() - parseInt(unlockTimestamp, 10) < sevenDaysInMillis) {
+        setIsSiteUnlocked(true);
+      }
+    }
+  }, []);
+
   const handleSiteUnlock = (e: React.FormEvent) => {
     e.preventDefault();
     if (sitePasswordInput === db.settings.sitePassword) {
+      localStorage.setItem('siteUnlockTimestamp', Date.now().toString());
       setIsSiteUnlocked(true);
       setError('');
     } else {

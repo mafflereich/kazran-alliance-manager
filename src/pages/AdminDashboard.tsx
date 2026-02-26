@@ -12,10 +12,6 @@ export default function AdminDashboard() {
 
   const userRole = currentUser ? db.users[currentUser]?.role : 'manager';
 
-  useEffect(() => {
-    fetchAllMembers();
-  }, []);
-
   const handleLogout = () => {
     setCurrentUser(null);
     setCurrentView(null);
@@ -71,8 +67,9 @@ export default function AdminDashboard() {
 }
 
 function ToolsManager() {
-  const { db, addMember, updateMember, fetchAllMembers } = useAppContext();
+  const { db, addMember, deleteMember, updateMember, fetchAllMembers } = useAppContext();
 
+  const [isProcessing, setIsProcessing] = useState(false);
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     title: '',
@@ -135,6 +132,74 @@ function ToolsManager() {
     });
   };
 
+  const handleRemoveDuplicates = () => {
+    setConfirmModal({
+      isOpen: true,
+      title: '移除重複成員',
+      message: '確定要移除重複成員嗎？此動作將會刪除所有公會中同名且無服飾資料的成員。',
+      isDanger: true,
+      onConfirm: async () => {
+        setIsProcessing(true);
+        closeConfirmModal();
+        const membersByGuild: Record<string, any[]> = {};
+        for (const memberId in db.members) {
+          const member = db.members[memberId];
+          if (!membersByGuild[member.guildId]) {
+            membersByGuild[member.guildId] = [];
+          }
+          membersByGuild[member.guildId].push({ id: memberId, ...member });
+        }
+
+        for (const guildId in membersByGuild) {
+          const members = membersByGuild[guildId];
+          const membersByName: Record<string, any[]> = {};
+          for (const member of members) {
+            if (!membersByName[member.name]) {
+              membersByName[member.name] = [];
+            }
+            membersByName[member.name].push(member);
+          }
+
+          for (const name in membersByName) {
+            const duplicateMembers = membersByName[name];
+            if (duplicateMembers.length > 1) {
+              const membersWithCostumes = duplicateMembers.filter(m => Object.keys(m.records || {}).length > 0);
+              if (membersWithCostumes.length <= 1) {
+                const membersToDelete = duplicateMembers.filter(m => Object.keys(m.records || {}).length === 0);
+                if (membersWithCostumes.length === 1) {
+                  for (const member of membersToDelete) {
+                    await deleteMember(member.id);
+                  }
+                } else {
+                  for (let i = 1; i < membersToDelete.length; i++) {
+                    await deleteMember(membersToDelete[i].id);
+                  }
+                }
+              } else {
+                const membersByCostume: Record<string, any[]> = {};
+                for (const member of membersWithCostumes) {
+                  const costumeKey = JSON.stringify(member.records);
+                  if (!membersByCostume[costumeKey]) {
+                    membersByCostume[costumeKey] = [];
+                  }
+                  membersByCostume[costumeKey].push(member);
+                }
+
+                for (const costumeKey in membersByCostume) {
+                  const sameCostumeMembers = membersByCostume[costumeKey];
+                  for (let i = 1; i < sameCostumeMembers.length; i++) {
+                    await deleteMember(sameCostumeMembers[i].id);
+                  }
+                }
+              }
+            }
+          }
+        }
+        setIsProcessing(false);
+      }
+    });
+  };
+
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold mb-6 text-stone-800 flex items-center gap-2">
@@ -148,7 +213,7 @@ function ToolsManager() {
         </div>
         <h3 className="text-xl font-bold text-stone-800 mb-2">自動搬運</h3>
         <p className="text-stone-500 mb-6 max-w-md">
-          此功能可用於自動處理成員資料搬運。
+          此功能可用於自動處理成員資料搬運，目前僅供介面展示。
         </p>
         <button
           onClick={handleAutoTransfer}
@@ -192,6 +257,10 @@ function GuildsManager() {
   const [editGuildName, setEditGuildName] = useState('');
   const [editGuildTier, setEditGuildTier] = useState<number>(1);
   const [editGuildOrder, setEditGuildOrder] = useState<number>(1);
+
+  useEffect(() => {
+    fetchAllMembers();
+  }, []);
 
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
@@ -285,7 +354,16 @@ function GuildsManager() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-6 text-stone-800">公會列表</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-stone-800">公會列表</h2>
+        <button
+          onClick={() => fetchAllMembers()}
+          className="p-2 text-stone-500 hover:bg-stone-200 rounded-full transition-colors"
+          title="重新整理"
+        >
+          <RefreshCw className="w-5 h-5" />
+        </button>
+      </div>
 
       <div className="flex gap-2 mb-6">
         <input

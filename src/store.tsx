@@ -207,7 +207,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const unsub = onSnapshot(q, (snap) => {
       const members: Record<string, Member> = {};
       snap.forEach(doc => {
-        members[doc.id] = { ...doc.data() as Member, id: doc.id };
+        const data = doc.data();
+        members[doc.id] = {
+          id: doc.id,
+          name: data.name,
+          role: data.role,
+          note: data.note,
+          guildId: data.guildId,
+          records: data.records, // Temporarily keep records to avoid breaking changes
+          updatedAt: data.updatedAt,
+        } as Member;
       });
       setDbState(prev => ({ ...prev, members }));
     }, (error) => {

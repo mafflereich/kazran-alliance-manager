@@ -226,11 +226,11 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
                             const record = member.records[c.id];
                             const hasCostume = record && record.level >= 0;
                             
-                            let levelColorClass = "bg-amber-500 text-white"; // default for +5
+                            let levelColorClass = "bg-orange-400 text-white"; // default for +5
                             if (hasCostume) {
                               if (record.level <= 0) levelColorClass = "bg-stone-200 text-stone-600";
-                              else if (record.level <= 2) levelColorClass = "bg-blue-500 text-white";
-                              else if (record.level <= 4) levelColorClass = "bg-purple-500 text-white";
+                              else if (record.level <= 2) levelColorClass = "bg-blue-400 text-white";
+                              else if (record.level <= 4) levelColorClass = "bg-purple-400 text-white";
                             }
 
                             return (
