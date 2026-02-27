@@ -9,9 +9,11 @@ const supabaseKey = 'sb_publishable_cEh77QcE374IYwuSnyN0KA_TzGwaLDo'
 const rawSupabase = createClient(supabaseUrl, supabaseKey);
 
 // 轉換工具
-export const toCamel = <T>(data: any): T => camelcaseKeys(data, { deep: false }) as T;
+export const toCamel = <T>(data: any): T =>
+    camelcaseKeys(data, { deep: false }) as T;
 
-export const toSnake = (data: any) => snakecaseKeys(data, { deep: false, exclude: ['_'] });  // 保留 _ 开头的字段（如 __typename）
+export const toSnake = (data: any) =>
+    snakecaseKeys(data, { deep: true, exclude: ['_'] });  // 保留 _ 开头的字段（如 __typename）
 
 export async function supabaseInsert<T>(
     table: string,
@@ -21,7 +23,8 @@ export async function supabaseInsert<T>(
     const snakeValues = toSnake(values);
     const { data, error, count, status, statusText } = await rawSupabase
         .from(table)
-        .insert(snakeValues, { count: 'exact' });
+        .insert(snakeValues, { count: 'exact' })
+        .select();
 
     return {
         data: data ? toCamel<T extends any[] ? T : T[]>(data) : null,
@@ -40,13 +43,14 @@ export async function supabaseUpdate<T>(
 ) {
     let query = rawSupabase.from(table).update(toSnake(values));
 
-    for (const [col, val] of Object.entries(filters)) {
-        query = query.eq(col, val);   // col 必須是 snake_case
+    const snakeFilters = toSnake(filters) as Record<string, any>;
+    for (const [col, val] of Object.entries(snakeFilters)) {
+        query = query.eq(col, val);
     }
 
     const { data, error, count, status, statusText } = await query
         .select()
-        .maybeSingle();  // 或 .single() 如果確定只影響一行
+        .maybeSingle();
 
     return {
         data: data ? toCamel<T>(data) : null,
@@ -66,7 +70,8 @@ export async function supabaseUpsert<T>(
     const snakeValues = toSnake(values);
     const { data, error, count, status, statusText } = await rawSupabase
         .from(table)
-        .upsert(snakeValues, { ...options, count: 'exact' });
+        .upsert(snakeValues, { ...options, count: 'exact' })
+        .select();
 
     return {
         data: data ? toCamel<T extends any[] ? T : T[]>(data) : null,

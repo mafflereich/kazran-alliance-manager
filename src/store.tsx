@@ -123,7 +123,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           characters,
           costumes,
           users,
-          settings: settingsRes.data ? toCamel(settingsRes.data) : defaultData.settings,
+          settings: settingsRes.data ? toCamel<Database['settings']>(settingsRes.data) : defaultData.settings,
         }));
 
         setLoadedStates({ global: true, guilds: true, costumes: true, characters: true, users: true });
@@ -383,10 +383,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
 
   const restoreData = async (data: Partial<Database>) => {
-    // This function needs a complete rewrite for Supabase.
-    // It might involve bulk inserts and upserts.
-    // For now, it's a placeholder.
-    console.warn('restoreData function is not implemented for Supabase yet.');
+    try {
+      if (data.guilds) {
+        await supabaseUpsert('guilds', Object.values(data.guilds));
+      }
+      if (data.characters) {
+        await supabaseUpsert('characters', Object.values(data.characters));
+      }
+      if (data.costumes) {
+        await supabaseUpsert('costumes', Object.values(data.costumes));
+      }
+      if (data.members) {
+        await supabaseUpsert('members', Object.values(data.members));
+      }
+      if (data.users) {
+        await supabaseUpsert('admin_users', Object.values(data.users));
+      }
+      if (data.settings) {
+        await supabaseUpsert('settings', data.settings);
+      }
+      
+      alert('資料還原成功！頁面即將重新整理。');
+      window.location.reload();
+    } catch (error) {
+      console.error('Error restoring data:', error);
+      throw error;
+    }
   };
 
   const updateUserPassword = async (username: string, password: string) => {
@@ -406,16 +428,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateSettings = async (data: Partial<Database['settings']>) => {
-    const { data: currentSettings, error } = await supabase.from('settings').select('*').limit(1).single();
+    const { data: currentSettingsData, error } = await supabase.from('settings').select('*').limit(1).single();
     if (error && error.code !== 'PGRST116') { // Ignore 'not found' error
       console.error('Error fetching settings:', error);
       return;
     }
 
-    // Map incoming data to snake_case if needed, but here we assume the caller passes the correct keys
-    // or we map them here. Since we updated the type definition, 'data' should already have snake_case keys.
+    const currentSettings = currentSettingsData ? toCamel<Database['settings']>(currentSettingsData) : {};
     const newSettings = { ...currentSettings, ...data };
     await supabaseUpsert('settings', newSettings);
+
+    setDbState(prev => ({
+      ...prev,
+      settings: { ...prev.settings, ...data }
+    }));
   };
 
   if (!isLoaded) {

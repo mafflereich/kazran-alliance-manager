@@ -212,31 +212,28 @@ function ToolsManager() {
         const costumes = Object.values(db.costumes);
         const characters = Object.values(db.characters);
 
-        const findChar = (costume: { characterId: string; }) => characters.find((character) => character.id == costume.characterId);
-
-        const costumeDefineList = costumes
-          .sort((a, b) => 0 - +a.isNew || findChar(a).orderNum - findChar(b).orderNum || a.orderNum - b.orderNum)
-          .map((costume) => [
-            findChar(costume).name,
-            costume.name,
-          ]);
-
+        const costumeDefineList = costumes.map((costume) => [
+          characters.find((character) => character.id == costume.characterId).name,
+          costume.name
+        ]);
 
         const result = {};
-        for (const name of Object.keys(costumeList)) {
+        for (let name of Object.keys(costumeList)) {
 
-          const costume = costumeList[name].slice(0, costumeDefineList.length);
-          const pName = name.replaceAll(/(<.+>)/g, "").match(/^@(.+)/)?.[1].trim();
+          let costume = costumeList[name].slice(0, costumeDefineList.length);
+          let pName = name.replaceAll(/(<.+>)/g, "").match(/^@(.+)/)?.[1].trim();
 
-          costume.forEach((costumeEnhanced: string, i: string | number) => {
+          costume.forEach((costumeEnhanced: string, i: number) => {
             costumeEnhanced = costumeEnhanced.toString();
-            const charId = characters.find((character) => costumeDefineList[i][0] == character.name).id;
-            const costumeId = costumes.find((costume) => costume.characterId == charId && costumeDefineList[i][1] == costume.name).id;
-
-            if (!result[pName]) result[pName] = { records: {}, exclusiveWeapons: {} };
-            result[pName]["records"][costumeId] = { level: costumeEnhanced.split("")[0] ?? -1 };
-            result[pName]["exclusiveWeapons"][charId] = Boolean(costumeEnhanced.match(/E/));
-
+            const [charName, costumeName] = costumeDefineList[i];
+            const charId = characters.find((character) => character.name === charName)?.id;
+            const costumeId = costumes.find((costume) => costume.characterId === charId && costume.name === costumeName)?.id;
+            
+            if (charId && costumeId) {
+              if (!result[pName]) result[pName] = { records: {}, exclusiveWeapons: {} };
+              result[pName]["records"][costumeId] = { level: costumeEnhanced.split("")[0] ?? -1, };
+              result[pName]["exclusiveWeapons"][charId] = Boolean(costumeEnhanced.match(/E/));
+            }
           });
         }
 
@@ -244,12 +241,9 @@ function ToolsManager() {
 
         for (let member of memberList) {
 
-          if (!result[member.name]) continue;
-
-          const needUpdateRecord = Object.values(result[member.name].records).some((resultRecord, i) => resultRecord['level'] != Object.values(member.records)?.[i]?.level);
-          const needUpdateExclusiveWeapon = Object.values(result[member.name].exclusiveWeapons).some((resultExclusiveWeapon, i) => resultExclusiveWeapon != Object.values(member.exclusiveWeapons)?.[i]);
-
-          if (!needUpdateRecord && !needUpdateExclusiveWeapon) continue;
+          if (!result[member.name]) {
+            continue;
+          }
 
           await updateMember(member.id, result[member.name]);
         }
@@ -1461,7 +1455,7 @@ function SettingsManager() {
 }
 
 function BackupManager() {
-  const { db, setDb } = useAppContext();
+  const { db, restoreData } = useAppContext();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleBackup = () => {
@@ -1484,14 +1478,14 @@ function BackupManager() {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const text = e.target?.result;
         if (typeof text === 'string') {
           const restoredDb = JSON.parse(text);
           // Basic validation
           if (restoredDb.guilds && restoredDb.members && restoredDb.costumes) {
-            setDb(restoredDb);
+            await restoreData(restoredDb);
             alert("資料已成功還原！");
           } else {
             alert("無效的備份檔案格式。");
