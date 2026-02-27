@@ -150,14 +150,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const fetchMembers = async (guildId: string, includeNote: boolean = false) => {
     if (isOffline) return;
 
-    const selectQuery = includeNote 
-      ? '*' 
+    const selectQuery = includeNote
+      ? '*'
       : 'id, name, guild_id, role, records, exclusive_weapons, updated_at';
 
     const { data, error } = await supabase
       .from('members')
       .select(selectQuery)
-      .eq('guild_id', guildId);
+      .eq('guild_id', guildId) as unknown as { data: Member[], error: Error };
 
     if (error) {
       console.error("Error fetching members:", error);
@@ -416,7 +416,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
 
     try {
-      await Promise.all(updates.map(u => 
+      await Promise.all(updates.map(u =>
         supabaseUpdate('characters', { orderNum: u.orderNum }, { id: u.id })
       ));
     } catch (error) {
@@ -424,8 +424,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Revert by fetching fresh data
       const { data, error: fetchError } = await supabase.from('characters').select('*');
       if (!fetchError && data) {
-         const characters = data.reduce((acc, char) => ({ ...acc, [char.id]: toCamel(char) }), {});
-         setDbState(prev => ({ ...prev, characters }));
+        const characters = data.reduce((acc, char) => ({ ...acc, [char.id]: toCamel(char) }), {});
+        setDbState(prev => ({ ...prev, characters }));
       }
     }
   };
@@ -491,7 +491,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
 
     try {
-      await Promise.all(updates.map(u => 
+      await Promise.all(updates.map(u =>
         supabaseUpdate('costumes', { orderNum: u.orderNum }, { id: u.id })
       ));
     } catch (error) {
@@ -499,8 +499,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Revert by fetching fresh data
       const { data, error: fetchError } = await supabase.from('costumes').select('*');
       if (!fetchError && data) {
-         const costumes = data.reduce((acc, costume) => ({ ...acc, [costume.id]: toCamel(costume) }), {});
-         setDbState(prev => ({ ...prev, costumes }));
+        const costumes = data.reduce((acc, costume) => ({ ...acc, [costume.id]: toCamel(costume) }), {});
+        setDbState(prev => ({ ...prev, costumes }));
       }
     }
   };
@@ -534,7 +534,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (data.settings) {
         await supabaseUpsert('settings', data.settings);
       }
-      
+
       alert('資料還原成功！頁面即將重新整理。');
       window.location.reload();
     } catch (error) {

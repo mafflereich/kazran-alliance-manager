@@ -228,7 +228,7 @@ function ToolsManager() {
             const [charName, costumeName] = costumeDefineList[i];
             const charId = characters.find((character) => character.name === charName)?.id;
             const costumeId = costumes.find((costume) => costume.characterId === charId && costume.name === costumeName)?.id;
-            
+
             if (charId && costumeId) {
               if (!result[pName]) result[pName] = { records: {}, exclusiveWeapons: {} };
               result[pName]["records"][costumeId] = { level: costumeEnhanced.split("")[0] ?? -1, };
@@ -829,7 +829,7 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
               <th className="p-3 font-semibold">名稱</th>
               <th className="p-3 font-semibold">職位</th>
               <th className="p-3 font-semibold">備註</th>
-              <th className="p-3 font-semibold text-right">操作</th>
+              <th className="p-3 font-semibold text-right">編輯</th>
             </tr>
           </thead>
           <tbody>
@@ -1307,8 +1307,8 @@ function CostumesManager() {
                 <label htmlFor="isNew" className="ml-2 block text-sm text-stone-900">標示為NEW</label>
               </div>
               <div className="flex gap-2">
-                <button 
-                  onClick={handleUpdateCostume} 
+                <button
+                  onClick={handleUpdateCostume}
                   className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors flex items-center justify-center gap-2 ${isCostumeSaved ? 'bg-green-600 hover:bg-green-700' : 'bg-amber-600 hover:bg-amber-700'}`}
                 >
                   {isCostumeSaved ? <><Check className="w-4 h-4" /> 已儲存</> : '儲存服裝'}
@@ -1426,7 +1426,7 @@ function SettingsManager() {
             <tr className="border-b-2 border-stone-200 text-stone-600">
               <th className="p-3 font-semibold">使用者名稱</th>
               <th className="p-3 font-semibold">權限</th>
-              <th className="p-3 font-semibold text-right">操作</th>
+              <th className="p-3 font-semibold text-right">編輯</th>
             </tr>
           </thead>
           <tbody>

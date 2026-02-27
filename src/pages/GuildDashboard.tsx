@@ -215,7 +215,7 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
                               <div className="text-[10px] text-stone-400 mt-1 truncate w-20 mx-auto" title={db.characters[c.characterId]?.name}>{db.characters[c.characterId]?.name}</div>
                             </th>
                           ))}
-                          <th className="p-3 font-semibold text-center sticky top-0 right-0 bg-stone-50 z-30 border-l border-b-2 border-stone-200 shadow-[-1px_0_0_0_#e7e5e4]">操作</th>
+                          <th className="p-3 font-semibold text-center sticky top-0 right-0 bg-stone-50 z-30 border-l border-b-2 border-stone-200 shadow-[-1px_0_0_0_#e7e5e4]">編輯</th>
                         </tr>
                       </thead>
                       <tbody>

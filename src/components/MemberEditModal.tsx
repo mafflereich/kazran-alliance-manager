@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../store';
 import { X, Save, CheckCircle2, Swords } from 'lucide-react';
 import { getImageUrl } from '../utils';
+import ConfirmModal from './ConfirmModal';
 
 export default function MemberEditModal({ memberId, onClose }: { memberId: string, onClose: () => void }) {
   const { db, updateMember } = useAppContext();
@@ -14,25 +15,48 @@ export default function MemberEditModal({ memberId, onClose }: { memberId: strin
 
   const [records, setRecords] = useState(member.records ?? {});
   const [exclusiveWeapons, setExclusiveWeapons] = useState(member.exclusiveWeapons ?? {});
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => { },
+    isDanger: false,
+    confirmText: "是的"
+  });
 
-  const handleSave = async () => {
-    setIsSaving(true);
-    try {
-      // The context now handles updates directly, so we just need to close.
-      setShowSuccess(true);
+  const closeConfirmModal = () => setConfirmModal(prev => ({ ...prev, isOpen: false }));
 
-      await updateMember(memberId, { records, exclusiveWeapons: exclusiveWeapons });
+  const handleSave = async (memberName) => {
 
-      setTimeout(() => {
-        setShowSuccess(false);
-        onClose();
-      }, 1000);
-    } catch (error) {
-      console.error("Error updating member:", error);
-      alert("儲存失敗，請稍後再試");
-    } finally {
-      setIsSaving(false);
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: '身分確認',
+      message: `請問你是 「<b>${memberName}</b>」 嗎？`,
+      isDanger: false,
+      confirmText: "是的",
+      onConfirm: async () => {
+
+        setIsSaving(true);
+        closeConfirmModal();
+
+        try {
+          // The context now handles updates directly, so we just need to close.
+          setShowSuccess(true);
+
+          await updateMember(memberId, { records, exclusiveWeapons: exclusiveWeapons });
+
+          setTimeout(() => {
+            setShowSuccess(false);
+            onClose();
+          }, 1000);
+        } catch (error) {
+          console.error("Error updating member:", error);
+          alert("儲存失敗，請稍後再試");
+        } finally {
+          setIsSaving(false);
+        }
+      }
+    });
   };
 
   const characters = Object.values(db.characters).sort((a, b) => {
@@ -51,7 +75,7 @@ export default function MemberEditModal({ memberId, onClose }: { memberId: strin
         <div className="bg-white px-6 py-4 border-b border-stone-200 flex justify-between items-center sticky top-0 z-10">
           <div>
             <h2 className="text-xl font-bold text-stone-800">編輯成員: {member.name}</h2>
-            <p className="text-stone-500 text-sm">服裝練度與專武登記</p>
+            <p className="text-stone-500 text-sm">服裝練度與UR專用登記</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-stone-100 rounded-full transition-colors">
             <X className="w-6 h-6 text-stone-500" />
@@ -69,7 +93,7 @@ export default function MemberEditModal({ memberId, onClose }: { memberId: strin
                   <h3 className="font-bold text-stone-800">{character.name}</h3>
                   <label className="flex items-center gap-2 cursor-pointer group bg-stone-50 px-3 py-1.5 rounded-lg border border-stone-200 active:bg-stone-100 transition-colors shrink-0">
                     <Swords className={`w-4 h-4 transition-colors ${hasExclusiveWeapon ? 'text-amber-600' : 'text-stone-400'}`} />
-                    <span className={`text-sm font-bold ${hasExclusiveWeapon ? 'text-amber-700' : 'text-stone-500'}`}>專武</span>
+                    <span className={`text-sm font-bold ${hasExclusiveWeapon ? 'text-amber-700' : 'text-stone-500'}`}>UR專用</span>
                     <div className="relative flex items-center">
                       <input
                         type="checkbox"
@@ -159,7 +183,7 @@ export default function MemberEditModal({ memberId, onClose }: { memberId: strin
             <X className="w-6 h-6" />
           </button>
           <button
-            onClick={handleSave}
+            onClick={() => handleSave(member.name)}
             disabled={isSaving}
             className={`flex items-center justify-center p-2 rounded-xl font-medium shadow-sm transition-all active:scale-95 disabled:opacity-70 ${showSuccess ? 'bg-green-600 text-white' : 'bg-amber-600 hover:bg-amber-700 text-white'
               }`}
@@ -169,6 +193,15 @@ export default function MemberEditModal({ memberId, onClose }: { memberId: strin
           </button>
         </div>
       </div>
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={closeConfirmModal}
+        isDanger={confirmModal.isDanger}
+        confirmText={confirmModal.confirmText}
+      />
     </div>
   );
 }
