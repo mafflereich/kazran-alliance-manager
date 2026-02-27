@@ -31,7 +31,7 @@ interface AppContextType {
   setCurrentUser: React.Dispatch<React.SetStateAction<string | null>>;
 
   // Member functions
-  fetchMembers: (guildId: string) => void;
+  fetchMembers: (guildId: string, includeNote?: boolean) => void;
   fetchAllMembers: () => Promise<void>;
   addMember: (guildId: string, name: string, role?: Role, note?: string) => Promise<void>;
   updateMember: (memberId: string, data: Partial<Member>) => Promise<void>;
@@ -147,12 +147,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [memberUnsub, setMemberUnsub] = useState<(() => void) | null>(null);
 
   // Function to fetch members for a specific guild
-  const fetchMembers = async (guildId: string) => {
+  const fetchMembers = async (guildId: string, includeNote: boolean = false) => {
     if (isOffline) return;
+
+    const selectQuery = includeNote 
+      ? '*' 
+      : 'id, name, guild_id, role, records, exclusive_weapons, updated_at';
 
     const { data, error } = await supabase
       .from('members')
-      .select('*')
+      .select(selectQuery)
       .eq('guild_id', guildId);
 
     if (error) {

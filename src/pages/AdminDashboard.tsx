@@ -574,7 +574,7 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
   const closeConfirmModal = () => setConfirmModal(prev => ({ ...prev, isOpen: false }));
 
   useEffect(() => {
-    fetchMembers(guildId);
+    fetchMembers(guildId, true);
   }, [guildId]);
 
   const [isBatchAdding, setIsBatchAdding] = useState(false);
