@@ -107,7 +107,7 @@ export default function Header() {
 
   const topGuildId = sortedGuilds.length > 0 ? sortedGuilds[0][0] : null;
 
-  const isCostumeListActive = currentView?.type === 'guild' && currentView.guildId === topGuildId;
+  const isCostumeListActive = currentView?.type === 'guild';
   const isAdminActive = currentView?.type === 'admin';
 
   return (

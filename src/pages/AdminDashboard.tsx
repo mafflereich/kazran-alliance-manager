@@ -957,7 +957,7 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
 }
 
 function CostumesManager() {
-  const { db, addCharacter, updateCharacter, deleteCharacter, addCostume, updateCostume, deleteCostume } = useAppContext();
+  const { db, addCharacter, updateCharacter, deleteCharacter, addCostume, updateCostume, deleteCostume, updateCharactersOrder, updateCostumesOrder } = useAppContext();
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
   const [selectedCostumeId, setSelectedCostumeId] = useState<string | null>(null);
   const [confirmModal, setConfirmModal] = useState({
@@ -1020,32 +1020,22 @@ function CostumesManager() {
   }, [costumes, isReorderingCostumes]);
 
   const handleSaveCharacterOrder = async () => {
+    setIsReorderingCharacters(false);
+    setSaveSuccess('character');
+    setTimeout(() => setSaveSuccess(null), 2000);
     try {
-      for (let i = 0; i < orderedCharacters.length; i++) {
-        const char = orderedCharacters[i];
-        if (char.orderNum !== i + 1) {
-          await updateCharacter(char.id, { orderNum: i + 1 });
-        }
-      }
-      setIsReorderingCharacters(false);
-      setSaveSuccess('character');
-      setTimeout(() => setSaveSuccess(null), 2000);
+      await updateCharactersOrder(orderedCharacters);
     } catch (error: any) {
       alert(`更新排序失敗: ${error.message}`);
     }
   };
 
   const handleSaveCostumeOrder = async () => {
+    setIsReorderingCostumes(false);
+    setSaveSuccess('costume');
+    setTimeout(() => setSaveSuccess(null), 2000);
     try {
-      for (let i = 0; i < orderedCostumes.length; i++) {
-        const costume = orderedCostumes[i];
-        if (costume.orderNum !== i + 1) {
-          await updateCostume(costume.id, { orderNum: i + 1 });
-        }
-      }
-      setIsReorderingCostumes(false);
-      setSaveSuccess('costume');
-      setTimeout(() => setSaveSuccess(null), 2000);
+      await updateCostumesOrder(orderedCostumes);
     } catch (error: any) {
       alert(`更新排序失敗: ${error.message}`);
     }
@@ -1165,6 +1155,8 @@ function CostumesManager() {
     });
   };
 
+  const [isCostumeSaved, setIsCostumeSaved] = useState(false);
+
   const handleUpdateCostume = async () => {
     if (!selectedCostumeId) return;
     await updateCostume(selectedCostumeId, {
@@ -1173,7 +1165,8 @@ function CostumesManager() {
       imageName: editCostumeImageName,
       isNew: editCostumeIsNew
     });
-    alert('服裝更新成功');
+    setIsCostumeSaved(true);
+    setTimeout(() => setIsCostumeSaved(false), 2000);
   };
 
   return (
@@ -1314,7 +1307,12 @@ function CostumesManager() {
                 <label htmlFor="isNew" className="ml-2 block text-sm text-stone-900">標示為NEW</label>
               </div>
               <div className="flex gap-2">
-                <button onClick={handleUpdateCostume} className="flex-1 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700">儲存服裝</button>
+                <button 
+                  onClick={handleUpdateCostume} 
+                  className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors flex items-center justify-center gap-2 ${isCostumeSaved ? 'bg-green-600 hover:bg-green-700' : 'bg-amber-600 hover:bg-amber-700'}`}
+                >
+                  {isCostumeSaved ? <><Check className="w-4 h-4" /> 已儲存</> : '儲存服裝'}
+                </button>
                 <button onClick={handleDeleteCostume} className="px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200" title="刪除服裝">
                   <Trash2 className="w-5 h-5" />
                 </button>

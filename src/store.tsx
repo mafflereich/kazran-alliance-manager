@@ -48,11 +48,13 @@ interface AppContextType {
   addCharacter: (name: string, order: number) => Promise<void>;
   updateCharacter: (characterId: string, data: Partial<Character>) => Promise<void>;
   deleteCharacter: (characterId: string) => Promise<void>;
+  updateCharactersOrder: (newOrder: Character[]) => Promise<void>;
 
   // Costume functions
   addCostume: (characterId: string, name: string, order: number) => Promise<void>;
   updateCostume: (costumeId: string, data: Partial<Costume>) => Promise<void>;
   deleteCostume: (costumeId: string) => Promise<void>;
+  updateCostumesOrder: (newOrder: Costume[]) => Promise<void>;
 
   // User and settings functions
   updateUserPassword: (username: string, password: string) => Promise<void>;
@@ -350,27 +352,153 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const addCharacter = async (name: string, order: number) => {
-    await supabaseInsert('characters', { id: uuidv4(), name, orderNum: order });
+    const newChar = { id: uuidv4(), name, orderNum: order };
+    const { data, error } = await supabaseInsert('characters', newChar);
+    if (error) {
+      console.error('Error adding character:', error);
+    } else if (data) {
+      const addedChar = data[0];
+      setDbState(prev => ({
+        ...prev,
+        characters: { ...prev.characters, [addedChar.id]: addedChar }
+      }));
+    }
   };
 
   const updateCharacter = async (characterId: string, data: Partial<Character>) => {
-    await supabaseUpdate('characters', data, { id: characterId });
+    const { error } = await supabaseUpdate('characters', data, { id: characterId });
+    if (error) {
+      console.error('Error updating character:', error);
+    } else {
+      setDbState(prev => ({
+        ...prev,
+        characters: {
+          ...prev.characters,
+          [characterId]: { ...prev.characters[characterId], ...data }
+        }
+      }));
+    }
   };
 
   const deleteCharacter = async (characterId: string) => {
-    await supabase.from('characters').delete().eq('id', characterId);
+    const { error } = await supabase.from('characters').delete().eq('id', characterId);
+    if (error) {
+      console.error('Error deleting character:', error);
+    } else {
+      setDbState(prev => {
+        const { [characterId]: _, ...rest } = prev.characters;
+        return { ...prev, characters: rest };
+      });
+    }
+  };
+
+  const updateCharactersOrder = async (newOrder: Character[]) => {
+    const updates = newOrder.map((char, index) => ({
+      id: char.id,
+      orderNum: index + 1
+    })).filter(u => db.characters[u.id]?.orderNum !== u.orderNum);
+
+    if (updates.length === 0) return;
+
+    // Optimistic update
+    setDbState(prev => {
+      const newCharacters = { ...prev.characters };
+      updates.forEach(u => {
+        if (newCharacters[u.id]) {
+          newCharacters[u.id] = { ...newCharacters[u.id], orderNum: u.orderNum };
+        }
+      });
+      return { ...prev, characters: newCharacters };
+    });
+
+    try {
+      await Promise.all(updates.map(u => 
+        supabaseUpdate('characters', { orderNum: u.orderNum }, { id: u.id })
+      ));
+    } catch (error) {
+      console.error('Error updating characters order:', error);
+      // Revert by fetching fresh data
+      const { data, error: fetchError } = await supabase.from('characters').select('*');
+      if (!fetchError && data) {
+         const characters = data.reduce((acc, char) => ({ ...acc, [char.id]: toCamel(char) }), {});
+         setDbState(prev => ({ ...prev, characters }));
+      }
+    }
   };
 
   const addCostume = async (characterId: string, name: string, order: number) => {
-    await supabaseInsert('costumes', { id: uuidv4(), characterId: characterId, name, orderNum: order, isNew: false });
+    const newCostume = { id: uuidv4(), characterId: characterId, name, orderNum: order, isNew: false };
+    const { data, error } = await supabaseInsert('costumes', newCostume);
+    if (error) {
+      console.error('Error adding costume:', error);
+    } else if (data) {
+      const addedCostume = data[0];
+      setDbState(prev => ({
+        ...prev,
+        costumes: { ...prev.costumes, [addedCostume.id]: addedCostume }
+      }));
+    }
   };
 
   const updateCostume = async (costumeId: string, data: Partial<Costume>) => {
-    await supabaseUpdate('costumes', data, { id: costumeId });
+    const { error } = await supabaseUpdate('costumes', data, { id: costumeId });
+    if (error) {
+      console.error('Error updating costume:', error);
+    } else {
+      setDbState(prev => ({
+        ...prev,
+        costumes: {
+          ...prev.costumes,
+          [costumeId]: { ...prev.costumes[costumeId], ...data }
+        }
+      }));
+    }
   };
 
   const deleteCostume = async (costumeId: string) => {
-    await supabase.from('costumes').delete().eq('id', costumeId);
+    const { error } = await supabase.from('costumes').delete().eq('id', costumeId);
+    if (error) {
+      console.error('Error deleting costume:', error);
+    } else {
+      setDbState(prev => {
+        const { [costumeId]: _, ...rest } = prev.costumes;
+        return { ...prev, costumes: rest };
+      });
+    }
+  };
+
+  const updateCostumesOrder = async (newOrder: Costume[]) => {
+    const updates = newOrder.map((costume, index) => ({
+      id: costume.id,
+      orderNum: index + 1
+    })).filter(u => db.costumes[u.id]?.orderNum !== u.orderNum);
+
+    if (updates.length === 0) return;
+
+    // Optimistic update
+    setDbState(prev => {
+      const newCostumes = { ...prev.costumes };
+      updates.forEach(u => {
+        if (newCostumes[u.id]) {
+          newCostumes[u.id] = { ...newCostumes[u.id], orderNum: u.orderNum };
+        }
+      });
+      return { ...prev, costumes: newCostumes };
+    });
+
+    try {
+      await Promise.all(updates.map(u => 
+        supabaseUpdate('costumes', { orderNum: u.orderNum }, { id: u.id })
+      ));
+    } catch (error) {
+      console.error('Error updating costumes order:', error);
+      // Revert by fetching fresh data
+      const { data, error: fetchError } = await supabase.from('costumes').select('*');
+      if (!fetchError && data) {
+         const costumes = data.reduce((acc, costume) => ({ ...acc, [costume.id]: toCamel(costume) }), {});
+         setDbState(prev => ({ ...prev, costumes }));
+      }
+    }
   };
 
 
@@ -412,19 +540,58 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateUserPassword = async (username: string, password: string) => {
-    await supabaseUpdate('admin_users', { password }, { username: username });
+    const { error } = await supabaseUpdate('admin_users', { password }, { username: username });
+    if (error) {
+      console.error('Error updating user password:', error);
+    } else {
+      setDbState(prev => ({
+        ...prev,
+        users: {
+          ...prev.users,
+          [username]: { ...prev.users[username], password }
+        }
+      }));
+    }
   };
 
   const updateUserRole = async (username: string, role: User['role']) => {
-    await supabaseUpdate('admin_users', { role }, { username: username });
+    const { error } = await supabaseUpdate('admin_users', { role }, { username: username });
+    if (error) {
+      console.error('Error updating user role:', error);
+    } else {
+      setDbState(prev => ({
+        ...prev,
+        users: {
+          ...prev.users,
+          [username]: { ...prev.users[username], role }
+        }
+      }));
+    }
   };
 
   const addUser = async (user: User) => {
-    await supabaseInsert('admin_users', user);
+    const { data, error } = await supabaseInsert('admin_users', user);
+    if (error) {
+      console.error('Error adding user:', error);
+    } else if (data) {
+      const addedUser = data[0] as User;
+      setDbState(prev => ({
+        ...prev,
+        users: { ...prev.users, [addedUser.username]: addedUser }
+      }));
+    }
   };
 
   const deleteUser = async (username: string) => {
-    await supabase.from('admin_users').delete().eq('username', username);
+    const { error } = await supabase.from('admin_users').delete().eq('username', username);
+    if (error) {
+      console.error('Error deleting user:', error);
+    } else {
+      setDbState(prev => {
+        const { [username]: _, ...rest } = prev.users;
+        return { ...prev, users: rest };
+      });
+    }
   };
 
   const updateSettings = async (data: Partial<Database['settings']>) => {
@@ -453,8 +620,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       db, setDb, currentView, setCurrentView, currentUser, setCurrentUser,
       fetchMembers, fetchAllMembers, addMember, updateMember, deleteMember, updateMemberCostumeLevel, updateMemberExclusiveWeapon,
       addGuild, updateGuild, deleteGuild,
-      addCharacter, updateCharacter, deleteCharacter,
-      addCostume, updateCostume, deleteCostume,
+      addCharacter, updateCharacter, deleteCharacter, updateCharactersOrder,
+      addCostume, updateCostume, deleteCostume, updateCostumesOrder,
       updateUserPassword, updateUserRole, addUser, deleteUser, updateSettings,
       restoreData
     }}>
