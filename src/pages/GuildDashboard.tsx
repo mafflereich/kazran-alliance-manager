@@ -82,7 +82,10 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, '0');
     const dd = String(d.getDate()).padStart(2, '0');
-    return `${yyyy}/${mm}/${dd}`;
+    const hh = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    const ss = String(d.getSeconds()).padStart(2, '0');
+    return `${yyyy}/${mm}/${dd} ${hh}:${min}:${ss}`;
   };
 
   const sortedGuilds = (Object.entries(db.guilds) as [string, any][]).sort((a, b) => {
