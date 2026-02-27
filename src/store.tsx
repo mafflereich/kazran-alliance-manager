@@ -246,10 +246,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       [costumeId]: { level }
     };
 
+    const now = Date.now();
     const { error } = await supabaseUpdate('members',
       {
         records: updatedRecords,
-        updatedAt: Date.now()
+        updatedAt: now
       },
       {
         id: memberId
@@ -262,22 +263,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         ...prev,
         members: {
           ...prev.members,
-          [memberId]: { ...prev.members[memberId], records: updatedRecords }
+          [memberId]: { ...prev.members[memberId], records: updatedRecords, updatedAt: now }
         }
       }));
     }
   };
 
   const updateMember = async (memberId: string, data: Partial<Member>) => {
-
-    const { error } = await supabaseUpdate('members', { ...data, updatedAt: Date.now() }, { id: memberId });
+    const now = Date.now();
+    const { error } = await supabaseUpdate('members', { ...data, updatedAt: now }, { id: memberId });
 
     if (error) {
       console.error('Error updating member:', error);
     } else {
       setDbState(prev => ({
         ...prev,
-        members: { ...prev.members, [memberId]: { ...prev.members[memberId], ...data } }
+        members: { ...prev.members, [memberId]: { ...prev.members[memberId], ...data, updatedAt: now } }
       }));
     }
   };
@@ -333,9 +334,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       [characterId]: hasWeapon
     };
 
+    const now = Date.now();
     const { error } = await supabaseUpdate('members',
       {
-        exclusiveWeapons: updatedWeapons, updatedAt: Date.now()
+        exclusiveWeapons: updatedWeapons, updatedAt: now
       },
       {
         id: memberId
@@ -349,7 +351,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         ...prev,
         members: {
           ...prev.members,
-          [memberId]: { ...prev.members[memberId], exclusiveWeapons: updatedWeapons }
+          [memberId]: { ...prev.members[memberId], exclusiveWeapons: updatedWeapons, updatedAt: now }
         }
       }));
     }
