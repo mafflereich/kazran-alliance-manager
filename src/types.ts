@@ -5,6 +5,7 @@ export interface Guild {
   name: string;
   tier?: number;
   orderNum?: number;
+  username?: string;
 }
 
 export interface CostumeRecord {
@@ -41,7 +42,6 @@ export interface Costume {
 
 export interface User {
   username: string;
-  password: string;
   role: 'creator' | 'admin' | 'manager';
 }
 

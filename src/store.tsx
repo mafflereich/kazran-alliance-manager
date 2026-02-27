@@ -10,9 +10,9 @@ const defaultData: Database = {
   characters: {},
   costumes: {},
   users: {
-    "creator": { username: "creator", password: "123", role: "creator" },
-    "admin": { username: "admin", password: "123", role: "admin" },
-    "manager": { username: "manager", password: "123", role: "manager" }
+    "creator": { username: "creator", role: "creator" },
+    "admin": { username: "admin", role: "admin" },
+    "manager": { username: "manager", role: "manager" }
   },
   settings: {
     sitePassword: "bd2",
@@ -43,7 +43,6 @@ interface AppContextType {
   addGuild: (name: string) => Promise<void>;
   updateGuild: (guildId: string, data: Partial<Guild>) => Promise<void>;
   deleteGuild: (guildId: string) => Promise<void>;
-  verifyGuildPassword: (guildId: string, password: string) => Promise<boolean>;
 
   // Character functions
   addCharacter: (name: string, order: number) => Promise<void>;
@@ -285,22 +284,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const addGuild = async (name: string) => {
-    const newGuild = { id: uuidv4(), name, tier: 1, orderNum: 99 };
+    const username = name.toLowerCase();
+    const newGuild = { id: uuidv4(), name, tier: 1, orderNum: 99, username };
     const { data, error } = await supabaseInsert('guilds', newGuild);
     if (error) {
       console.error('Error adding guild:', error);
     } else if (data) {
-      const addedGuild = data[0];
-      setDbState(prev => ({ ...prev, guilds: { ...prev.guilds, [addedGuild.id]: addedGuild } }));
+      const addedGuild = data[0] as Guild;
+      setDbState(prev => ({ ...prev, guilds: { ...prev.guilds, [addedGuild.id!]: addedGuild } }));
     }
   };
 
   const updateGuild = async (guildId: string, data: Partial<Guild>) => {
-    const { error } = await supabaseUpdate('guilds', data, { id: guildId });
+    const updateData = { ...data };
+    if (updateData.name) {
+      updateData.username = updateData.name.toLowerCase();
+    }
+    const { error } = await supabaseUpdate('guilds', updateData, { id: guildId });
     if (error) {
       console.error('Error updating guild:', error);
     } else {
-      setDbState(prev => ({ ...prev, guilds: { ...prev.guilds, [guildId]: { ...prev.guilds[guildId], ...data } } }));
+      setDbState(prev => ({ ...prev, guilds: { ...prev.guilds, [guildId]: { ...prev.guilds[guildId], ...updateData } } }));
     }
   };
 
@@ -313,31 +317,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const { [guildId]: _, ...rest } = prev.guilds;
         return { ...prev, guilds: rest };
       });
-    }
-  };
-
-  const verifyGuildPassword = async (guildId: string, password: string): Promise<boolean> => {
-    try {
-      const { data, error } = await supabase
-        .from('guild_users')
-        .select('password')
-        .eq('guild_id', guildId)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error verifying guild password:', error);
-        return false;
-      }
-
-      // If no record exists, the password is ""
-      if (!data) {
-        return password === "";
-      }
-
-      return data.password === password;
-    } catch (error) {
-      console.error('Error verifying guild password:', error);
-      return false;
     }
   };
 
@@ -651,7 +630,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     <AppContext.Provider value={{
       db, setDb, currentView, setCurrentView, currentUser, setCurrentUser,
       fetchMembers, fetchAllMembers, addMember, updateMember, deleteMember, updateMemberCostumeLevel, updateMemberExclusiveWeapon,
-      addGuild, updateGuild, deleteGuild, verifyGuildPassword,
+      addGuild, updateGuild, deleteGuild,
       addCharacter, updateCharacter, deleteCharacter, updateCharactersOrder,
       addCostume, updateCostume, deleteCostume, updateCostumesOrder,
       updateUserPassword, updateUserRole, addUser, deleteUser, updateSettings,

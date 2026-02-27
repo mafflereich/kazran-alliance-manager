@@ -11,7 +11,7 @@ import { Reorder } from "motion/react";
 
 export default function AdminDashboard() {
   const { db, setDb, setCurrentView, currentUser, setCurrentUser, fetchAllMembers } = useAppContext();
-  const [activeTab, setActiveTab] = useState<'guilds' | 'costumes' | 'settings' | 'backup' | 'tools'>('guilds');
+  const [activeTab, setActiveTab] = useState<'guilds' | 'costumes' | 'backup' | 'tools'>('guilds');
 
   const userRole = currentUser ? db.users[currentUser]?.role : 'manager';
 
@@ -37,7 +37,6 @@ export default function AdminDashboard() {
           <TabButton active={activeTab === 'costumes'} onClick={() => setActiveTab('costumes')} icon={<Sword />} label="服裝資料庫" />
           {userRole !== 'manager' && (
             <>
-              <TabButton active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon={<Lock />} label="帳號設定" />
               <TabButton active={activeTab === 'backup'} onClick={() => setActiveTab('backup')} icon={<Save />} label="備份與還原" />
               <TabButton active={activeTab === 'tools'} onClick={() => setActiveTab('tools')} icon={<Wand2 />} label="便利小功能" />
             </>
@@ -47,7 +46,6 @@ export default function AdminDashboard() {
         <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
           {activeTab === 'guilds' && <GuildsManager />}
           {activeTab === 'costumes' && <CostumesManager />}
-          {activeTab === 'settings' && userRole !== 'manager' && <SettingsManager />}
           {activeTab === 'backup' && userRole !== 'manager' && <BackupManager />}
           {activeTab === 'tools' && userRole !== 'manager' && <ToolsManager />}
         </div>
@@ -1372,100 +1370,6 @@ function CostumesManager() {
         onConfirm={inputModal.onConfirm}
         onCancel={closeInputModal}
       />
-    </div>
-  );
-}
-
-function SettingsManager() {
-  const { db, addUser, deleteUser } = useAppContext();
-  const [newUser, setNewUser] = useState({ username: '', password: '', role: 'manager' as 'admin' | 'manager' });
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editData, setEditData] = useState<Partial<User>>({});
-
-  const handleAddUser = async () => {
-    if (!newUser.username.trim() || !newUser.password.trim()) return;
-    try {
-      await addUser(newUser);
-      setNewUser({ username: '', password: '', role: 'manager' });
-    } catch (error: any) {
-      alert(`新增使用者失敗: ${error.message}`);
-    }
-  };
-
-  const handleUpdateUser = async () => {
-    if (!editingId) return;
-    // await updateUser(editingId, editData); // This function is removed
-    console.log("Update user functionality is deprecated.");
-    setEditingId(null);
-    setEditData({});
-  };
-
-  return (
-    <div>
-      <h2 className="text-2xl font-bold mb-6 text-stone-800">使用者帳號設定</h2>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 bg-stone-50 p-4 rounded-xl border border-stone-200">
-        <div className="md:col-span-1">
-          <label className="block text-sm font-medium text-stone-600 mb-1">使用者名稱</label>
-          <input
-            type="text"
-            placeholder="Username"
-            className="w-full p-2 border border-stone-300 rounded-lg"
-            value={newUser.username}
-            onChange={e => setNewUser({ ...newUser, username: e.target.value })}
-          />
-        </div>
-        <div className="md:col-span-1">
-          <label className="block text-sm font-medium text-stone-600 mb-1">密碼</label>
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full p-2 border border-stone-300 rounded-lg"
-            value={newUser.password}
-            onChange={e => setNewUser({ ...newUser, password: e.target.value })}
-          />
-        </div>
-        <div className="md:col-span-1">
-          <label className="block text-sm font-medium text-stone-600 mb-1">權限</label>
-          <select
-            className="w-full p-2 border border-stone-300 rounded-lg"
-            value={newUser.role}
-            onChange={e => setNewUser({ ...newUser, role: e.target.value as 'admin' | 'manager' })}
-          >
-            <option value="manager">Manager</option>
-            <option value="admin">Admin</option>
-          </select>
-        </div>
-        <button onClick={handleAddUser} className="px-4 py-2 bg-stone-800 text-white rounded-lg hover:bg-stone-700 self-end">新增使用者</button>
-      </div>
-
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="border-b-2 border-stone-200 text-stone-600">
-              <th className="p-3 font-semibold">使用者名稱</th>
-              <th className="p-3 font-semibold">權限</th>
-              <th className="p-3 font-semibold text-right">編輯</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Object.entries(db.users).map(([id, user]) => (
-              <tr key={id} className="border-b border-stone-100 hover:bg-stone-50">
-                <td className="p-3 font-medium text-stone-800">{user.username}</td>
-                <td className="p-3">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${user.role === 'admin' ? 'bg-red-100 text-red-800' : 'bg-stone-200 text-stone-700'}`}>
-                    {user.role}
-                  </span>
-                </td>
-                <td className="p-3 text-right">
-                  <button onClick={() => deleteUser(id)} className="p-2 text-stone-500 hover:bg-stone-100 rounded-lg transition-colors" title="刪除">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
     </div>
   );
 }

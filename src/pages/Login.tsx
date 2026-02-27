@@ -4,16 +4,24 @@ import { Shield, Users, ChevronRight, Lock, X, AlertCircle } from 'lucide-react'
 import { getTierColor, getTierBorderHoverClass, getTierTextHoverClass } from '../utils';
 import Footer from '../components/Footer';
 import Header from '../components/Header';
+import { supabase } from '../supabase';
+
+const DOMAIN_SUFFIX = '@kazran.com';
 
 export default function Login() {
-  const { db, setCurrentView, verifyGuildPassword, currentUser } = useAppContext();
+  const { db, setCurrentView, setCurrentUser, currentUser } = useAppContext();
   const [selectedGuildForLogin, setSelectedGuildForLogin] = useState<{ id: string, name: string } | null>(null);
   const [guildPassword, setGuildPassword] = useState('');
   const [error, setError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
 
+  const userRole = currentUser ? db.users[currentUser]?.role : null;
+  const canSeeAllGuilds = userRole === 'admin' || userRole === 'creator' || userRole === 'manager';
+  const userGuildId = !canSeeAllGuilds && currentUser ? Object.entries(db.guilds).find(([_, g]) => g.username === currentUser)?.[0] : null;
+
   const handleGuildSelect = async (guildId: string, guildName: string) => {
     if (currentUser) {
+      if (!canSeeAllGuilds && guildId !== userGuildId) return;
       setCurrentView({ type: 'guild', guildId });
       return;
     }
@@ -27,17 +35,36 @@ export default function Login() {
     e.preventDefault();
     if (!selectedGuildForLogin) return;
 
+    const guild = db.guilds[selectedGuildForLogin.id];
+    const username = guild?.username;
+
+    if (!username) {
+      setError('此公會尚未設定登入帳號');
+      return;
+    }
+
     setIsVerifying(true);
     setError('');
     
-    const isValid = await verifyGuildPassword(selectedGuildForLogin.id, guildPassword);
-    
-    setIsVerifying(false);
+    try {
+      const formattedEmail = `${username}${DOMAIN_SUFFIX}`;
 
-    if (isValid) {
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: formattedEmail,
+        password: guildPassword,
+      });
+
+      if (authError) {
+        throw new Error('密碼錯誤');
+      }
+
+      setCurrentUser(username);
       setCurrentView({ type: 'guild', guildId: selectedGuildForLogin.id });
-    } else {
-      setError('密碼錯誤');
+    } catch (error: any) {
+      setError(error.message);
+      console.error('公會登入失敗:', error);
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -75,17 +102,20 @@ export default function Login() {
                     return (
                       <div key={tier} className="space-y-3">
                         <h3 className={`font-bold text-center py-2 rounded-lg border ${getTierColor(tier)}`}>梯隊 {tier}</h3>
-                        {tierGuilds.map(([id, guild]: [string, any]) => (
-                          <button
-                            key={id}
-                            onClick={() => handleGuildSelect(id, guild.name)}
-                            disabled={isVerifying}
-                            className={`w-full flex items-center justify-between p-4 bg-white border border-stone-200 rounded-xl transition-all group ${getTierBorderHoverClass(tier)} disabled:opacity-50`}
-                          >
-                            <span className={`font-medium text-stone-800 transition-colors ${getTierTextHoverClass(tier)}`}>{guild.name}</span>
-                            <ChevronRight className={`w-5 h-5 text-stone-400 transition-colors ${getTierTextHoverClass(tier)}`} />
-                          </button>
-                        ))}
+                        {tierGuilds.map(([id, guild]: [string, any]) => {
+                          const isDisabled = currentUser && !canSeeAllGuilds && id !== userGuildId;
+                          return (
+                            <button
+                              key={id}
+                              onClick={() => handleGuildSelect(id, guild.name)}
+                              disabled={isVerifying || isDisabled}
+                              className={`w-full flex items-center justify-between p-4 bg-white border border-stone-200 rounded-xl transition-all group ${isDisabled ? 'opacity-30 grayscale cursor-not-allowed' : getTierBorderHoverClass(tier)} disabled:opacity-50`}
+                            >
+                              <span className={`font-medium text-stone-800 transition-colors ${isDisabled ? '' : getTierTextHoverClass(tier)}`}>{guild.name}</span>
+                              <ChevronRight className={`w-5 h-5 text-stone-400 transition-colors ${isDisabled ? '' : getTierTextHoverClass(tier)}`} />
+                            </button>
+                          );
+                        })}
                       </div>
                     );
                   })}

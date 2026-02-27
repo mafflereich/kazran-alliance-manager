@@ -8,9 +8,36 @@ import { Role } from '../types';
 import { getTierTextColorDark, getTierHighlightClass, getTierHoverClass, truncateName, getImageUrl } from '../utils';
 
 export default function GuildDashboard({ guildId }: { guildId: string }) {
-  const { db, setCurrentView } = useAppContext();
+  const { db, setCurrentView, currentUser } = useAppContext();
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const userRole = currentUser ? db.users[currentUser]?.role : null;
+  const canSeeAllGuilds = userRole === 'admin' || userRole === 'creator' || userRole === 'manager';
+  const userGuildId = !canSeeAllGuilds && currentUser ? Object.entries(db.guilds).find(([_, g]) => g.username === currentUser)?.[0] : null;
+
+  // Redirect or block if trying to access another guild as a guild user
+  if (currentUser && !canSeeAllGuilds && guildId !== userGuildId) {
+    return (
+      <div className="h-screen flex flex-col">
+        <Header />
+        <div className="flex-1 flex items-center justify-center bg-stone-100">
+          <div className="text-center p-8 bg-white rounded-2xl shadow-sm border border-stone-200 max-w-md">
+            <Shield className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-stone-800 mb-2">權限不足</h2>
+            <p className="text-stone-500 mb-6">您沒有權限查看此公會的資料。</p>
+            <button
+              onClick={() => userGuildId && setCurrentView({ type: 'guild', guildId: userGuildId })}
+              className="px-6 py-2 bg-stone-800 text-white rounded-lg hover:bg-stone-700 transition-colors"
+            >
+              返回您的公會
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   // Draggable scroll state
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -88,14 +115,16 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
     return `${yyyy}/${mm}/${dd} ${hh}:${min}:${ss}`;
   };
 
-  const sortedGuilds = (Object.entries(db.guilds) as [string, any][]).sort((a, b) => {
-    const tierA = a[1].tier || 99;
-    const tierB = b[1].tier || 99;
-    if (tierA !== tierB) return tierA - tierB;
-    const orderA = a[1].orderNum || 99;
-    const orderB = b[1].orderNum || 99;
-    return orderA - orderB;
-  });
+  const sortedGuilds = (Object.entries(db.guilds) as [string, any][])
+    .filter(([id, _]) => canSeeAllGuilds || id === userGuildId)
+    .sort((a, b) => {
+      const tierA = a[1].tier || 99;
+      const tierB = b[1].tier || 99;
+      if (tierA !== tierB) return tierA - tierB;
+      const orderA = a[1].orderNum || 99;
+      const orderB = b[1].orderNum || 99;
+      return orderA - orderB;
+    });
 
   return (
     <div className="h-screen bg-stone-100 flex flex-col overflow-hidden">

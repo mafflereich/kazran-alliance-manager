@@ -10,13 +10,20 @@ import AdminDashboard from './pages/AdminDashboard';
 import GuildDashboard from './pages/GuildDashboard';
 
 const AppContent = () => {
-  const { currentView } = useAppContext();
+  const { db, currentView, currentUser, setCurrentView } = useAppContext();
 
   if (!currentView) {
     return <Login />;
   }
 
   if (currentView.type === 'admin') {
+    const userRole = currentUser ? db.users[currentUser]?.role : null;
+    const canAccessAdmin = userRole === 'admin' || userRole === 'creator';
+    
+    if (!canAccessAdmin) {
+      setCurrentView(null);
+      return <Login />;
+    }
     return <AdminDashboard />;
   }
 

@@ -125,12 +125,15 @@ export default function Header() {
     return orderA - orderB;
   });
 
-  const topGuildId = sortedGuilds.length > 0 ? sortedGuilds[0][0] : null;
+  const userRole = currentUser ? db.users[currentUser]?.role : null;
+  const canSeeAllGuilds = userRole === 'admin' || userRole === 'creator' || userRole === 'manager';
+  const canAccessAdmin = userRole === 'admin' || userRole === 'creator';
+  const userGuildId = !canSeeAllGuilds && currentUser ? Object.entries(db.guilds).find(([_, g]) => g.username === currentUser)?.[0] : null;
+
+  const topGuildId = canSeeAllGuilds ? (sortedGuilds.length > 0 ? sortedGuilds[0][0] : null) : userGuildId;
 
   const isCostumeListActive = currentView?.type === 'guild';
   const isAdminActive = currentView?.type === 'admin';
-
-  const userRole = currentUser ? db.users[currentUser]?.role : null;
 
   return (
     <>
@@ -155,7 +158,7 @@ export default function Header() {
 
             {currentUser ? (
               <>
-                {userRole !== 'manager' && (
+                {canAccessAdmin && (
                   <button
                     onClick={() => setCurrentView({ type: 'admin' })}
                     disabled={isAdminActive}
