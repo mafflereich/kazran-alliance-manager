@@ -15,7 +15,14 @@ export default function MemberEditModal({ memberId, onClose }: { memberId: strin
 
   const [records, setRecords] = useState(member.records ?? {});
   const [exclusiveWeapons, setExclusiveWeapons] = useState(member.exclusiveWeapons ?? {});
-  const [confirmModal, setConfirmModal] = useState({
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: React.ReactNode;
+    onConfirm: () => void;
+    isDanger: boolean;
+    confirmText: string;
+  }>({
     isOpen: false,
     title: '',
     message: '',
@@ -26,12 +33,12 @@ export default function MemberEditModal({ memberId, onClose }: { memberId: strin
 
   const closeConfirmModal = () => setConfirmModal(prev => ({ ...prev, isOpen: false }));
 
-  const handleSave = async (memberName) => {
+  const handleSave = async (memberName: string) => {
 
     setConfirmModal({
       isOpen: true,
       title: '身分確認',
-      message: `請問你是 「<b>${memberName}</b>」 嗎？`,
+      message: <>請問你是 「<b>{memberName}</b>」 嗎？</>,
       isDanger: false,
       confirmText: "是的",
       onConfirm: async () => {

@@ -4,7 +4,7 @@ import { X, AlertTriangle, Bold } from 'lucide-react';
 interface ConfirmModalProps {
   isOpen: boolean;
   title: string;
-  message: string | Array<string>;
+  message: React.ReactNode;
   confirmText?: string;
   cancelText?: string;
   onConfirm: () => void;
@@ -34,7 +34,7 @@ export default function ConfirmModal({
             </div>
             <div className="flex-1">
               <h3 className="text-lg font-bold text-stone-900 mb-2">{title}</h3>
-              <p className="text-stone-600 leading-relaxed" dangerouslySetInnerHTML={{ __html: message }}></p>
+              <div className="text-stone-600 leading-relaxed">{message}</div>
             </div>
           </div>
         </div>

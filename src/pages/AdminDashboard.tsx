@@ -61,7 +61,13 @@ function ToolsManager() {
   const { db, addMember, deleteMember, updateMember, fetchAllMembers, restoreData } = useAppContext();
 
   const [isProcessing, setIsProcessing] = useState(false);
-  const [confirmModal, setConfirmModal] = useState({
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: React.ReactNode;
+    onConfirm: () => void;
+    isDanger: boolean;
+  }>({
     isOpen: false,
     title: '',
     message: '',
@@ -353,7 +359,13 @@ function GuildsManager() {
     fetchAllMembers();
   }, []);
 
-  const [confirmModal, setConfirmModal] = useState({
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: React.ReactNode;
+    onConfirm: () => void;
+    isDanger: boolean;
+  }>({
     isOpen: false,
     title: '',
     message: '',
@@ -563,7 +575,13 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
   const [isAdding, setIsAdding] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const [confirmModal, setConfirmModal] = useState({
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: React.ReactNode;
+    onConfirm: () => void;
+    isDanger: boolean;
+  }>({
     isOpen: false,
     title: '',
     message: '',
