@@ -128,7 +128,7 @@ export default function Header() {
               disabled={isCostumeListActive || !topGuildId}
               className={`flex items-center gap-2 transition-colors ${isCostumeListActive ? 'text-amber-500 cursor-default' : 'hover:text-amber-400 disabled:opacity-50 disabled:cursor-not-allowed'}`}
             >
-              <List className="w-4 h-4" /> 服飾列表
+              <List className="w-4 h-4" /> 服裝列表
             </button>
 
             {currentUser ? (
@@ -165,3 +165,4 @@ export default function Header() {
     </>
   );
 }
+
