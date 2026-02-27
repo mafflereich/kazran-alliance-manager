@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useAppContext } from '../store';
 import { ChevronLeft, Edit2, Menu, X, Shield, Swords, MoveHorizontal } from 'lucide-react';
 import MemberEditModal from '../components/MemberEditModal';
+import ConfirmModal from '../components/ConfirmModal';
 import Footer from '../components/Footer';
 import Header from '../components/Header';
 import { Role } from '../types';
@@ -11,6 +12,38 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
   const { db, setCurrentView, currentUser } = useAppContext();
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: React.ReactNode;
+    onConfirm: () => void;
+    isDanger: boolean;
+    confirmText: string;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => { },
+    isDanger: false,
+    confirmText: "是的"
+  });
+
+  const closeConfirmModal = () => setConfirmModal(prev => ({ ...prev, isOpen: false }));
+
+  const handleEditClick = (id: string, memberName: string) => {
+    setConfirmModal({
+      isOpen: true,
+      title: '身分確認',
+      message: <>請問你是 「<b>{memberName}</b>」 嗎？</>,
+      isDanger: false,
+      confirmText: "是的",
+      onConfirm: () => {
+        setEditingMemberId(id);
+        closeConfirmModal();
+      }
+    });
+  };
 
   const userRole = currentUser ? db.users[currentUser]?.role : null;
   const canSeeAllGuilds = userRole === 'admin' || userRole === 'creator' || userRole === 'manager';
@@ -296,7 +329,7 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
                             })}
                             <td className="p-3 text-center sticky right-0 bg-white group-hover:bg-stone-50 border-l border-stone-200 shadow-[-1px_0_0_0_#e7e5e4] transition-colors">
                               <button
-                                onClick={() => setEditingMemberId(id)}
+                                onClick={() => handleEditClick(id, member.name)}
                                 className="flex items-center justify-center p-2 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg transition-colors mx-auto"
                                 title="編輯"
                               >
@@ -329,6 +362,16 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
           onClose={() => setEditingMemberId(null)}
         />
       )}
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={closeConfirmModal}
+        isDanger={confirmModal.isDanger}
+        confirmText={confirmModal.confirmText}
+      />
     </div>
   );
 }

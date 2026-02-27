@@ -15,55 +15,24 @@ export default function MemberEditModal({ memberId, onClose }: { memberId: strin
 
   const [records, setRecords] = useState(member.records ?? {});
   const [exclusiveWeapons, setExclusiveWeapons] = useState(member.exclusiveWeapons ?? {});
-  const [confirmModal, setConfirmModal] = useState<{
-    isOpen: boolean;
-    title: string;
-    message: React.ReactNode;
-    onConfirm: () => void;
-    isDanger: boolean;
-    confirmText: string;
-  }>({
-    isOpen: false,
-    title: '',
-    message: '',
-    onConfirm: () => { },
-    isDanger: false,
-    confirmText: "是的"
-  });
 
-  const closeConfirmModal = () => setConfirmModal(prev => ({ ...prev, isOpen: false }));
+  const handleSave = async () => {
+    setIsSaving(true);
 
-  const handleSave = async (memberName: string) => {
+    try {
+      setShowSuccess(true);
+      await updateMember(memberId, { records, exclusiveWeapons: exclusiveWeapons });
 
-    setConfirmModal({
-      isOpen: true,
-      title: '身分確認',
-      message: <>請問你是 「<b>{memberName}</b>」 嗎？</>,
-      isDanger: false,
-      confirmText: "是的",
-      onConfirm: async () => {
-
-        setIsSaving(true);
-        closeConfirmModal();
-
-        try {
-          // The context now handles updates directly, so we just need to close.
-          setShowSuccess(true);
-
-          await updateMember(memberId, { records, exclusiveWeapons: exclusiveWeapons });
-
-          setTimeout(() => {
-            setShowSuccess(false);
-            onClose();
-          }, 1000);
-        } catch (error) {
-          console.error("Error updating member:", error);
-          alert("儲存失敗，請稍後再試");
-        } finally {
-          setIsSaving(false);
-        }
-      }
-    });
+      setTimeout(() => {
+        setShowSuccess(false);
+        onClose();
+      }, 1000);
+    } catch (error) {
+      console.error("Error updating member:", error);
+      alert("儲存失敗，請稍後再試");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const characters = Object.values(db.characters).sort((a, b) => {
@@ -190,7 +159,7 @@ export default function MemberEditModal({ memberId, onClose }: { memberId: strin
             <X className="w-6 h-6" />
           </button>
           <button
-            onClick={() => handleSave(member.name)}
+            onClick={handleSave}
             disabled={isSaving}
             className={`flex items-center justify-center p-2 rounded-xl font-medium shadow-sm transition-all active:scale-95 disabled:opacity-70 ${showSuccess ? 'bg-green-600 text-white' : 'bg-amber-600 hover:bg-amber-700 text-white'
               }`}
@@ -200,15 +169,6 @@ export default function MemberEditModal({ memberId, onClose }: { memberId: strin
           </button>
         </div>
       </div>
-      <ConfirmModal
-        isOpen={confirmModal.isOpen}
-        title={confirmModal.title}
-        message={confirmModal.message}
-        onConfirm={confirmModal.onConfirm}
-        onCancel={closeConfirmModal}
-        isDanger={confirmModal.isDanger}
-        confirmText={confirmModal.confirmText}
-      />
     </div>
   );
 }
