@@ -1,19 +1,21 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAppContext } from '../store';
-import { LogOut, Users, Shield, Sword, Plus, Edit2, Trash2, ArrowUp, ArrowDown, Save, X, ChevronLeft, Lock, User as UserIcon, AlertCircle, Download, Upload, FileText, RefreshCw, Wand2, GripVertical, Check } from 'lucide-react';
+import { LogOut, Users, Shield, Sword, Plus, Edit2, Trash2, ArrowUp, ArrowDown, Save, X, ChevronLeft, Lock, User as UserIcon, AlertCircle, Download, Upload, FileText, RefreshCw, Wand2, GripVertical, Check, Key } from 'lucide-react';
 import { Role, Guild, Member, Costume, User, Character } from '../types';
 import { getTierColor, getTierBorderHoverClass, getImageUrl } from '../utils';
 import ConfirmModal from '../components/ConfirmModal';
 import InputModal from '../components/InputModal';
 import Footer from '../components/Footer';
 import Header from '../components/Header';
+import SinglePasswordUpdate from '../components/SinglePasswordUpdate';
+import BulkPasswordUpdate from '../components/BulkPasswordUpdate';
 import { Reorder } from "motion/react";
 
 export default function AdminDashboard() {
   const { db, setDb, setCurrentView, currentUser, setCurrentUser, fetchAllMembers } = useAppContext();
-  const [activeTab, setActiveTab] = useState<'guilds' | 'costumes' | 'backup' | 'tools'>('guilds');
+  const [activeTab, setActiveTab] = useState<'guilds' | 'costumes' | 'backup' | 'tools' | 'passwords'>('guilds');
 
-  const userRole = currentUser ? db.users[currentUser]?.role : 'manager';
+  const userRole = currentUser ? db.users[currentUser]?.role : null;
 
   const handleLogout = () => {
     setCurrentUser(null);
@@ -37,6 +39,7 @@ export default function AdminDashboard() {
           <TabButton active={activeTab === 'costumes'} onClick={() => setActiveTab('costumes')} icon={<Sword />} label="服裝資料庫" />
           {userRole !== 'manager' && (
             <>
+              <TabButton active={activeTab === 'passwords'} onClick={() => setActiveTab('passwords')} icon={<Key />} label="修改密碼" />
               <TabButton active={activeTab === 'backup'} onClick={() => setActiveTab('backup')} icon={<Save />} label="備份與還原" />
               <TabButton active={activeTab === 'tools'} onClick={() => setActiveTab('tools')} icon={<Wand2 />} label="便利小功能" />
             </>
@@ -46,6 +49,39 @@ export default function AdminDashboard() {
         <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
           {activeTab === 'guilds' && <GuildsManager />}
           {activeTab === 'costumes' && <CostumesManager />}
+          {activeTab === 'passwords' && userRole !== 'manager' && (
+            <div className="space-y-12">
+              <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg">
+                <div className="flex">
+                  <div className="py-1"><AlertCircle className="h-5 w-5 text-amber-500 mr-3" /></div>
+                  <div>
+                    <p className="font-bold text-amber-800">操作提示</p>
+                    <p className="text-sm text-amber-700">
+                      使用系統開新公會後，要在 Supabase Auth 開一個帳號 <code className="bg-amber-100 px-1 rounded">"new_guild_name@kazran.com"</code>。
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <section>
+                <div className="mb-6">
+                  <h3 className="text-lg font-bold text-stone-800">單一密碼修改</h3>
+                  <p className="text-sm text-stone-500">適合單一使用者重置密碼。</p>
+                </div>
+                <SinglePasswordUpdate />
+              </section>
+              
+              <div className="border-t border-stone-100 pt-12">
+                <section>
+                  <div className="mb-6">
+                    <h3 className="text-lg font-bold text-stone-800">批次密碼修改</h3>
+                    <p className="text-sm text-stone-500">適合定期全面重置密碼時，透過 CSV 進行大範圍更新。</p>
+                  </div>
+                  <BulkPasswordUpdate />
+                </section>
+              </div>
+            </div>
+          )}
           {activeTab === 'backup' && userRole !== 'manager' && <BackupManager />}
           {activeTab === 'tools' && userRole !== 'manager' && <ToolsManager />}
         </div>
