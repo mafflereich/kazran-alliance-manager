@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Database, Guild, Member, Costume, Role, User, Character } from './types';
+import { Database, Guild, Member, Costume, Role, User, Character, ArchivedMember, ArchiveHistory } from './types';
 import { supabase, supabaseInsert, supabaseUpdate, supabaseUpsert, toCamel } from './supabase';
 import { v4 as uuidv4 } from 'uuid';
+import { formatDate } from './utils';
 
 const defaultData: Database = {
   guilds: {},
@@ -37,7 +38,7 @@ interface AppContextType {
   updateMember: (memberId: string, data: Partial<Member>) => Promise<void>;
   deleteMember: (memberId: string) => Promise<void>;
   archiveMember: (memberId: string, fromGuildId: string, reason: string) => Promise<void>;
-  unarchiveMember: (memberId: string, targetGuildId: string, remark: string) => Promise<void>;
+  unarchiveMember: (memberId: string, targetGuildId: string) => Promise<void>;
   updateMemberCostumeLevel: (memberId: string, costumeId: string, level: number) => Promise<void>;
   updateMemberExclusiveWeapon: (memberId: string, characterId: string, hasWeapon: boolean) => Promise<void>;
 
@@ -79,7 +80,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [currentUser, setCurrentUserState] = useState<string | null>(() => {
     const user = sessionStorage.getItem('currentUser');
     const loginTime = sessionStorage.getItem('loginTimestamp');
-    
+
     if (user && loginTime) {
       const now = Date.now();
       if (now - parseInt(loginTime, 10) > SESSION_TIMEOUT) {
@@ -251,6 +252,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const addMember = async (guildId: string, name: string, role: Role = '成員', note: string = '') => {
+
+    const { data: archivedData } = await supabase.from('members').select('*').eq('status', 'archived');
+    const archivedMember = toCamel(archivedData.find((archivedMember) => archivedMember.name == name)) as ArchivedMember;
+
+    if (archivedMember) {
+      unarchiveMember(archivedMember.id, guildId);
+      return;
+    }
+
     const newMember = {
       id: uuidv4(),
       name,
@@ -402,16 +412,47 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  const unarchiveMember = async (memberId: string, targetGuildId: string, remark: string) => {
+  const unarchiveMember = async (memberId: string, targetGuildId: string) => {
     if (isOffline) {
       alert("離線模式無法執行此操作");
       return;
     }
 
-    const { error } = await supabase
+    const { data: archivedData } = await supabase
       .from('members')
-      .update({ status: 'active', guild_id: targetGuildId, archive_remark: remark })
-      .eq('id', memberId);
+      .select(`
+          id,
+          status,
+          archive_remark,
+          members_archive_history (
+            id,
+            member_id,
+            from_guild_id,
+            archive_reason,
+            archived_at,
+            guilds (
+              name
+            )
+          )
+        `)
+      .eq('status', 'archived') as { data: ArchivedMember[] };
+
+    const archivedMember = toCamel(archivedData.find((archivedMember) => archivedMember.id == memberId)) as ArchivedMember;
+
+    const latestHistory = toCamel(archivedMember.membersArchiveHistory[0]) as ArchiveHistory;
+    const archivedAt = latestHistory ? formatDate(latestHistory.archivedAt) : '未知時間';
+    const archiveCount = archivedMember.membersArchiveHistory.length;
+    const remark = `最後封存：${archivedAt} (共 ${archiveCount} 次)`;
+
+    const { error } = await supabaseUpdate('members',
+      {
+        status: 'active',
+        guild_id: targetGuildId,
+        archive_remark: remark
+      },
+      {
+        'id': memberId
+      });
 
     if (error) throw error;
   };
@@ -426,7 +467,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const now = Date.now();
     const { error } = await supabaseUpdate('members',
       {
-        exclusiveWeapons: updatedWeapons, updatedAt: now
+        exclusiveWeapons: updatedWeapons,
+        updatedAt: now
       },
       {
         id: memberId
@@ -582,7 +624,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
 
     try {
-      await Promise.all(updates.map(u =>
+      await Promise.all(updates.map((u) =>
         supabaseUpdate('costumes', { orderNum: u.orderNum }, { id: u.id })
       ));
     } catch (error) {

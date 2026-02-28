@@ -73,7 +73,7 @@ export default function AdminDashboard() {
                 </div>
                 <SinglePasswordUpdate />
               </section>
-              
+
               <div className="border-t border-stone-100 pt-12">
                 <section>
                   <div className="mb-6">
@@ -95,7 +95,7 @@ export default function AdminDashboard() {
 }
 
 function ToolsManager() {
-  const { db, addMember, deleteMember, updateMember, fetchAllMembers, restoreData } = useAppContext();
+  const { db, addMember, deleteMember, updateMember, fetchAllMembers, restoreData, archiveMember } = useAppContext();
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [confirmModal, setConfirmModal] = useState<{
@@ -135,7 +135,9 @@ function ToolsManager() {
 
         const guildNameList = Object.keys(guildList);
 
-        const costumeList = Object.values(db.members);
+        const activeMemberList = [];
+
+        const memberList = Object.values(db.members);
         const guildListInDB = Object.values(db.guilds);
 
         for (const guildName of guildNameList) {
@@ -144,7 +146,7 @@ function ToolsManager() {
           for (let memberName of memberNames) {
             memberName = memberName.replace(/@/, "");
 
-            const member = costumeList.find((member) => member.name == memberName);
+            const member = memberList.find((member) => member.name == memberName);
 
             const guildId = guildListInDB.find((guild) => guild.name == guildName)?.id;
             const role = guildLeaderList[`@${memberName}`]?.replaceAll(/<|>/g, "") ?? "成員";
@@ -156,9 +158,17 @@ function ToolsManager() {
               await updateMember(member.id, { guildId, role });
             }
 
+            activeMemberList.push(memberName);
+
           };
 
         };
+
+        for (const member of memberList) {
+          if (!activeMemberList.find((memberName) => memberName == member.name)) {
+            archiveMember(member.id, member.guildId, "不在總表中");
+          }
+        }
 
         setIsProcessing(false);
       }
@@ -619,7 +629,7 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
     name: '',
     role: '成員',
     note: '',
-    targetGuildId: ''
+    targetGuildId: db.guilds[guildId]?.id
   });
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
@@ -746,7 +756,7 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
 
   const handleConfirmArchive = async () => {
     if (!archiveModal.memberId) return;
-    
+
     setIsArchiving(true);
     try {
       await archiveMember(archiveModal.memberId, guildId, archiveModal.reason);
@@ -964,7 +974,7 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
                         <select
                           className="w-full p-1.5 border border-stone-300 rounded bg-white text-xs mb-1"
                           value={formData.targetGuildId}
-                          onChange={e => setFormData({ ...formData, targetGuildId: e.target.value })}
+                          onChange={(e) => setFormData({ ...formData, targetGuildId: e.target.value })}
                         >
                           {(sortedGuilds as [string, any][]).map(([gId, g]) => (
                             <option key={gId} value={gId}>{g.name}</option>
@@ -1075,7 +1085,7 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
                 <X className="w-5 h-5 text-stone-500" />
               </button>
             </div>
-            
+
             <div className="p-6 space-y-4">
               <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg flex gap-3">
                 <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />

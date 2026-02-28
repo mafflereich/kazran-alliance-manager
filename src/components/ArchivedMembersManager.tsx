@@ -1,27 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../supabase';
+import { supabase, toCamel } from '../supabase';
 import { useAppContext } from '../store';
 import { Archive, History, RotateCcw, ChevronDown, ChevronUp, X, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { formatDate } from '../utils';
+import { ArchivedMember, ArchiveHistory } from '../types';
 
-interface ArchiveHistory {
-  id: string;
-  member_id: string;
-  from_guild_id: string;
-  archive_reason: string;
-  archived_at: string;
-  guilds: {
-    name: string;
-  };
-}
 
-interface ArchivedMember {
-  id: string;
-  name: string;
-  status: string;
-  archive_remark: string;
-  members_archive_history: ArchiveHistory[];
-}
 
 export default function ArchivedMembersManager() {
   const { db, unarchiveMember } = useAppContext();
@@ -64,20 +49,20 @@ export default function ArchivedMembersManager() {
           )
         `)
         .eq('status', 'archived')
-        .order('archived_at', { foreignTable: 'members_archive_history', ascending: false });
+        .order('archived_at', { referencedTable: 'members_archive_history', ascending: false });
 
       if (error) throw error;
 
       // Sort history arrays manually just in case Supabase order isn't perfect for nested arrays
       const members = (data as any[]).map(member => ({
         ...member,
-        members_archive_history: member.members_archive_history.sort((a: any, b: any) => 
-          new Date(b.archived_at).getTime() - new Date(a.archived_at).getTime()
+        membersArchiveHistory: (toCamel(member.members_archive_history) as ArchiveHistory[]).sort((a, b) =>
+          new Date(b.archivedAt).getTime() - new Date(a.archivedAt).getTime()
         )
       })).sort((a, b) => {
         // Sort members by their latest archive date (descending)
-        const dateA = a.members_archive_history[0]?.archived_at ? new Date(a.members_archive_history[0].archived_at).getTime() : 0;
-        const dateB = b.members_archive_history[0]?.archived_at ? new Date(b.members_archive_history[0].archived_at).getTime() : 0;
+        const dateA = a.membersArchiveHistory[0]?.archivedAt ? new Date(a.membersArchiveHistory[0].archivedAt).getTime() : 0;
+        const dateB = b.membersArchiveHistory[0]?.archivedAt ? new Date(b.membersArchiveHistory[0].archivedAt).getTime() : 0;
         return dateB - dateA;
       });
 
@@ -99,9 +84,9 @@ export default function ArchivedMembersManager() {
 
   const openUnarchiveModal = (member: ArchivedMember) => {
     // Default to the last guild if available, otherwise first available guild
-    const lastGuildId = member.members_archive_history[0]?.from_guild_id;
+    const lastGuildId = member.membersArchiveHistory[0]?.fromGuildId;
     const defaultGuildId = (lastGuildId && db.guilds[lastGuildId]) ? lastGuildId : (Object.keys(db.guilds)[0] || '');
-    
+
     setUnarchiveModal({
       isOpen: true,
       member,
@@ -117,33 +102,23 @@ export default function ArchivedMembersManager() {
     });
   };
 
-  // Helper to format date
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
-    return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
-  };
+
 
   const handleUnarchive = async () => {
     if (!unarchiveModal.member || !unarchiveModal.targetGuildId) return;
-    
+
     setIsProcessing(true);
     try {
-      const latestHistory = unarchiveModal.member.members_archive_history[0];
-      const archivedAt = latestHistory ? formatDate(latestHistory.archived_at) : '未知時間';
-      const archiveCount = unarchiveModal.member.members_archive_history.length;
+      const latestHistory = unarchiveModal.member.membersArchiveHistory[0];
+      const archivedAt = latestHistory ? formatDate(latestHistory.archivedAt) : '未知時間';
+      const archiveCount = unarchiveModal.member.membersArchiveHistory.length;
       const remark = `最後封存：${archivedAt} (共 ${archiveCount} 次)`;
 
-      await unarchiveMember(unarchiveModal.member.id, unarchiveModal.targetGuildId, remark);
-      
+      await unarchiveMember(unarchiveModal.member.id, unarchiveModal.targetGuildId);
+
       // Update local state
       setArchivedMembers(prev => prev.filter(m => m.id !== unarchiveModal.member?.id));
-      
+
       // Adjust page if current page becomes empty
       const remainingMembers = archivedMembers.length - 1;
       const maxPage = Math.ceil(remainingMembers / itemsPerPage);
@@ -199,7 +174,7 @@ export default function ArchivedMembersManager() {
               </tr>
             ) : (
               paginatedMembers.map((member) => {
-                const latestHistory = member.members_archive_history[0];
+                const latestHistory = member.membersArchiveHistory[0];
                 const isExpanded = expandedMemberId === member.id;
 
                 return (
@@ -210,22 +185,21 @@ export default function ArchivedMembersManager() {
                         {latestHistory?.guilds?.name || '未知'}
                       </td>
                       <td className="p-4 text-stone-500 text-sm">
-                        {latestHistory ? formatDate(latestHistory.archived_at) : '-'}
+                        {latestHistory ? formatDate(latestHistory.archivedAt) : '-'}
                       </td>
                       <td className="p-4 text-center text-stone-600">
                         <span className="bg-stone-100 px-2 py-1 rounded-full text-xs font-medium">
-                          {member.members_archive_history.length}
+                          {member.membersArchiveHistory.length}
                         </span>
                       </td>
                       <td className="p-4 text-right">
                         <div className="flex justify-end gap-2">
                           <button
                             onClick={() => toggleExpand(member.id)}
-                            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                              isExpanded 
-                                ? 'bg-amber-100 text-amber-700' 
-                                : 'text-stone-500 hover:bg-stone-100'
-                            }`}
+                            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-colors ${isExpanded
+                              ? 'bg-amber-100 text-amber-700'
+                              : 'text-stone-500 hover:bg-stone-100'
+                              }`}
                           >
                             <History className="w-4 h-4" />
                             {isExpanded ? '隱藏歷史' : '查看歷史'}
@@ -241,7 +215,7 @@ export default function ArchivedMembersManager() {
                         </div>
                       </td>
                     </tr>
-                    
+
                     {/* Expanded History Row */}
                     <AnimatePresence>
                       {isExpanded && (
@@ -259,23 +233,23 @@ export default function ArchivedMembersManager() {
                                   <History className="w-4 h-4" /> 封存歷史紀錄
                                 </h4>
                                 <div className="space-y-3 relative before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-0.5 before:bg-stone-200">
-                                  {member.members_archive_history.map((history, index) => (
+                                  {member.membersArchiveHistory.map((history, index) => (
                                     <div key={history.id} className="relative pl-6">
                                       <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-stone-200 border-2 border-white"></div>
                                       <div className="bg-white p-3 rounded-lg border border-stone-200 shadow-sm flex flex-wrap gap-4 items-center justify-between">
                                         <div className="flex items-center gap-4">
-                                          <span className="text-xs font-bold text-stone-400 w-6">#{member.members_archive_history.length - index}</span>
+                                          <span className="text-xs font-bold text-stone-400 w-6">#{member.membersArchiveHistory.length - index}</span>
                                           <div className="flex flex-col">
                                             <span className="text-sm font-medium text-stone-800">
                                               離開公會: {history.guilds?.name || '未知'}
                                             </span>
                                             <span className="text-xs text-stone-500">
-                                              {formatDate(history.archived_at)}
+                                              {formatDate(history.archivedAt)}
                                             </span>
                                           </div>
                                         </div>
                                         <div className="text-sm text-stone-600 bg-stone-50 px-3 py-1 rounded border border-stone-100 max-w-md truncate">
-                                          原因: {history.archive_reason || '無'}
+                                          原因: {history.archiveReason || '無'}
                                         </div>
                                       </div>
                                     </div>
@@ -331,7 +305,7 @@ export default function ArchivedMembersManager() {
                 <X className="w-5 h-5 text-stone-500" />
               </button>
             </div>
-            
+
             <div className="p-6 space-y-4">
               <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg flex gap-3">
                 <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
@@ -361,10 +335,10 @@ export default function ArchivedMembersManager() {
                       return orderA - orderB;
                     })
                     .map((guild) => (
-                    <option key={guild.id} value={guild.id}>
-                      {guild.name}
-                    </option>
-                  ))}
+                      <option key={guild.id} value={guild.id}>
+                        {guild.name}
+                      </option>
+                    ))}
                 </select>
               </div>
 

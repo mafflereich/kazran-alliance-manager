@@ -59,3 +59,21 @@ export interface Database {
     redirectUrl?: string;
   };
 }
+export interface ArchiveHistory {
+  id: string;
+  memberId: string;
+  fromGuildId: string;
+  archiveReason: string;
+  archivedAt: string;
+  guilds: {
+    name: string;
+  };
+}
+
+export interface ArchivedMember {
+  id: string;
+  name: string;
+  status: string;
+  archiveRemark: string;
+  membersArchiveHistory: ArchiveHistory[];
+}
