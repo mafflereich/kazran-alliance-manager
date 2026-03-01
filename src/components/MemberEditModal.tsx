@@ -5,7 +5,7 @@ import { getImageUrl } from '../utils';
 import ConfirmModal from './ConfirmModal';
 
 export default function MemberEditModal({ memberId, onClose }: { memberId: string, onClose: () => void }) {
-  const { db, updateMember } = useAppContext();
+  const { db, updateMember, showToast } = useAppContext();
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -29,7 +29,7 @@ export default function MemberEditModal({ memberId, onClose }: { memberId: strin
       }, 1000);
     } catch (error) {
       console.error("Error updating member:", error);
-      alert("儲存失敗，請稍後再試");
+      showToast("儲存失敗，請稍後再試", 'error');
     } finally {
       setIsSaving(false);
     }

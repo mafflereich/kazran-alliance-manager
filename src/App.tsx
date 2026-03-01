@@ -8,6 +8,7 @@ import { AppProvider, useAppContext } from './store';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
 import GuildDashboard from './pages/GuildDashboard';
+import ToastContainer from './components/Toast';
 
 const AppContent = () => {
   const { db, currentView, currentUser, setCurrentView } = useAppContext();
@@ -35,6 +36,7 @@ export default function App() {
     <AppProvider>
       <div className="min-h-screen bg-stone-100 text-stone-900 font-sans">
         <AppContent />
+        <ToastContainer />
       </div>
     </AppProvider>
   );

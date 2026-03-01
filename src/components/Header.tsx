@@ -148,10 +148,6 @@ export default function Header() {
             <Shield className="w-6 h-6 text-amber-500" />
             Kazran 聯盟系統
           </h1>
-          <div className="flex items-center justify-between p-4 text-white" >
-            <LanguageSelector />
-          </div>
-
           <div className="flex items-center gap-4 text-sm font-medium">
             <button
               onClick={() => topGuildId && setCurrentView({ type: 'guild', guildId: topGuildId })}
@@ -172,6 +168,9 @@ export default function Header() {
                     <Settings className="w-4 h-4" /> 後台設定
                   </button>
                 )}
+
+                <LanguageSelector />
+
                 <button
                   onClick={handleLogout}
                   className="flex items-center gap-2 hover:text-amber-400 transition-colors"
@@ -180,12 +179,15 @@ export default function Header() {
                 </button>
               </>
             ) : (
-              <button
-                onClick={() => setIsLoginModalOpen(true)}
-                className="flex items-center gap-2 hover:text-amber-400 transition-colors"
-              >
-                <User className="w-4 h-4" /> 登入
-              </button>
+              <>
+                <LanguageSelector />
+                <button
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className="flex items-center gap-2 hover:text-amber-400 transition-colors"
+                >
+                  <User className="w-4 h-4" /> 登入
+                </button>
+              </>
             )}
           </div>
         </div>

@@ -1,13 +1,13 @@
 // src/components/LanguageSelector.tsx
-import React, { Fragment } from 'react';
-import { Listbox, ListboxButton, ListboxOption, ListboxOptions, Transition } from '@headlessui/react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { languages, Language } from '../i18n/languages';
-import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
+import { Globe, Check } from 'lucide-react';
 
 const LanguageSelector: React.FC = () => {
     const { i18n } = useTranslation();
+    const [isOpen, setIsOpen] = useState(false);
 
     // 目前選中的語言
     const currentCode = i18n.language || i18n.options.fallbackLng?.[0] || 'zh-TW';
@@ -15,81 +15,64 @@ const LanguageSelector: React.FC = () => {
 
     const handleChange = (lang: Language) => {
         i18n.changeLanguage(lang.code);
-        localStorage.setItem('preferredLanguage', lang.code);
+        localStorage.setItem('i18nextLng', lang.code);
+        setIsOpen(false);
     };
 
     return (
-        <Listbox value={selected} onChange={handleChange}>
-            <div className="relative w-48 sm:w-56">
-                {/* 觸發按鈕 */}
-                <ListboxButton
-                    className={`
-            relative w-full cursor-pointer rounded-lg
-            bg-stone-900 text-white
-            py-2.5 pl-4 pr-10 text-left
-            shadow-sm
-            focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/60
-            transition-all duration-200
-            hover:bg-stone-800 hover:border-stone-600
-          `}
-                >
-                    <span className="block truncate font-medium">
-                        {selected.nativeName}
-                    </span>
-                    <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                        <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                    </span>
-                </ListboxButton>
+        <div 
+            className="relative"
+            onMouseEnter={() => setIsOpen(true)}
+            onMouseLeave={() => setIsOpen(false)}
+        >
+            {/* 觸發按鈕 */}
+            <button
+                className={`
+                    flex items-center gap-2 px-3 py-1.5 rounded-lg
+                    text-stone-300 hover:text-amber-400 transition-colors
+                    font-medium text-sm
+                `}
+            >
+                <Globe className="w-4 h-4" />
+                <span>{selected.nativeName}</span>
+            </button>
 
-                {/* 展開選單 + 動畫 */}
-                <Transition
-                    as={Fragment}
-                    leave="transition ease-in duration-100"
-                    leaveFrom="opacity-100"
-                    leaveTo="opacity-0"
-                >
-                    <ListboxOptions
-                        as={motion.ul}
-                        initial={{ opacity: 0, y: -8, scale: 0.98 }}
+            {/* 展開選單 */}
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 8, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                        transition={true}
+                        exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                        transition={{ duration: 0.15, ease: "easeOut" }}
                         className={`
-              absolute z-50 mt-1 w-full overflow-auto
-              rounded-lg bg-stone-900 border-stone-700
-              py-1 text-base shadow-2xl shadow-black/50
-              max-h-72
-            `}
+                            absolute right-0 mt-1 w-40 overflow-hidden
+                            rounded-xl bg-stone-800 border border-stone-700
+                            py-1 shadow-2xl z-50
+                        `}
                     >
                         {languages.map((lang) => (
-                            <ListboxOption
+                            <button
                                 key={lang.code}
-                                value={lang}
-                                className={({ active, selected }) =>
-                                    `relative cursor-pointer select-none py-2.5 pl-10 pr-4
-                  transition-colors duration-150
-                  ${active ? 'bg-stone-800 text-white' : 'text-white'}
-                  ${selected ? 'font-medium' : 'font-normal'}`
-                                }
+                                onClick={() => handleChange(lang)}
+                                className={`
+                                    w-full flex items-center justify-between px-4 py-2 text-sm
+                                    transition-colors duration-150
+                                    ${lang.code === selected.code 
+                                        ? 'text-amber-400 bg-stone-700/50' 
+                                        : 'text-stone-300 hover:bg-stone-700 hover:text-white'}
+                                `}
                             >
-                                {({ selected }) => (
-                                    <>
-                                        <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
-                                            {lang.nativeName}
-                                        </span>
-                                        {selected ? (
-                                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-400">
-                                                <CheckIcon className="h-5 w-5" aria-hidden="true" />
-                                            </span>
-                                        ) : null}
-                                    </>
+                                <span>{lang.nativeName}</span>
+                                {lang.code === selected.code && (
+                                    <Check className="w-4 h-4" />
                                 )}
-                            </ListboxOption>
+                            </button>
                         ))}
-                    </ListboxOptions>
-                </Transition>
-            </div>
-        </Listbox>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
     );
 };
 

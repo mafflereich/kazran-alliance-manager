@@ -95,7 +95,7 @@ export default function AdminDashboard() {
 }
 
 function ToolsManager() {
-  const { db, addMember, deleteMember, updateMember, fetchAllMembers, restoreData, archiveMember } = useAppContext();
+  const { db, addMember, deleteMember, updateMember, fetchAllMembers, restoreData, archiveMember, showToast } = useAppContext();
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [confirmModal, setConfirmModal] = useState<{
@@ -164,9 +164,14 @@ function ToolsManager() {
 
         };
 
-        for (const member of memberList) {
-          if (!activeMemberList.find((memberName) => memberName == member.name)) {
-            archiveMember(member.id, member.guildId, "不在總表中");
+        const membersToArchive = memberList.filter(member => !activeMemberList.find((memberName) => memberName == member.name));
+
+        if (membersToArchive.length > 0) {
+          const confirmArchive = window.confirm(`發現 ${membersToArchive.length} 名成員不在總表中，確定要將他們封存嗎？`);
+          if (confirmArchive) {
+            for (const member of membersToArchive) {
+              await archiveMember(member.id, member.guildId, "不在總表中");
+            }
           }
         }
 
@@ -393,7 +398,7 @@ function TabButton({ active, onClick, icon, label }: { active: boolean, onClick:
 }
 
 function GuildsManager() {
-  const { db, addGuild, updateGuild, deleteGuild, fetchAllMembers } = useAppContext();
+  const { db, addGuild, updateGuild, deleteGuild, fetchAllMembers, showToast } = useAppContext();
   const [newGuildName, setNewGuildName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [selectedGuildId, setSelectedGuildId] = useState<string | null>(null);
@@ -430,7 +435,7 @@ function GuildsManager() {
       setNewGuildName('');
     } catch (error: any) {
       console.error("Error adding guild:", error);
-      alert(`新增公會失敗: ${error.message}`);
+      showToast(`新增公會失敗: ${error.message}`, 'error');
     } finally {
       setIsSaving(false);
     }
@@ -460,7 +465,7 @@ function GuildsManager() {
       setEditingGuildId(null);
     } catch (error: any) {
       console.error("Error updating guild:", error);
-      alert(`更新公會失敗: ${error.message}`);
+      showToast(`更新公會失敗: ${error.message}`, 'error');
     }
   };
 
@@ -477,7 +482,7 @@ function GuildsManager() {
           closeConfirmModal();
         } catch (error: any) {
           console.error("Error deleting guild:", error);
-          alert(`刪除公會失敗: ${error.message}`);
+          showToast(`刪除公會失敗: ${error.message}`, 'error');
           closeConfirmModal();
         }
       }
@@ -618,7 +623,7 @@ function GuildsManager() {
 }
 
 function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () => void }) {
-  const { db, addMember, deleteMember, updateMember, fetchMembers, archiveMember } = useAppContext();
+  const { db, addMember, deleteMember, updateMember, fetchMembers, archiveMember, showToast: showGlobalToast } = useAppContext();
   const [selectedGuildId, setSelectedGuildId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [isBatchAdding, setIsBatchAdding] = useState(false);
@@ -652,15 +657,9 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
     reason: ''
   });
   const [isArchiving, setIsArchiving] = useState(false);
-  const [toast, setToast] = useState<{ show: boolean, message: string }>({ show: false, message: '' });
 
   const closeConfirmModal = () => setConfirmModal(prev => ({ ...prev, isOpen: false }));
   const closeArchiveModal = () => setArchiveModal(prev => ({ ...prev, isOpen: false }));
-
-  const showToast = (message: string) => {
-    setToast({ show: true, message });
-    setTimeout(() => setToast({ show: false, message: '' }), 3000);
-  };
 
   useEffect(() => {
     fetchMembers(guildId, true);
@@ -717,7 +716,7 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
   const handleSave = async () => {
     const error = validateMoveOrAdd(formData.targetGuildId, formData.role, editingId || undefined);
     if (error) {
-      alert(error);
+      showGlobalToast(error, 'warning');
       return;
     }
     setIsSaving(true);
@@ -737,7 +736,7 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
       setFormData({ name: '', role: '成員', note: '', targetGuildId: guildId });
     } catch (error: any) {
       console.error("Error saving member:", error);
-      alert(`儲存成員失敗: ${error.message}`);
+      showGlobalToast(`儲存成員失敗: ${error.message}`, 'error');
     } finally {
       setIsSaving(false);
     }
@@ -760,11 +759,11 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
     setIsArchiving(true);
     try {
       await archiveMember(archiveModal.memberId, guildId, archiveModal.reason);
-      showToast(`已成功封存成員 ${archiveModal.memberName}`);
+      showGlobalToast(`已成功封存成員 ${archiveModal.memberName}`, 'success');
       closeArchiveModal();
     } catch (error: any) {
       console.error("Archive failed:", error);
-      alert(`封存失敗: ${error.message}`);
+      showGlobalToast(`封存失敗: ${error.message}`, 'error');
     } finally {
       setIsArchiving(false);
     }
@@ -782,7 +781,7 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
           closeConfirmModal();
         } catch (error: any) {
           console.error("Error deleting member:", error);
-          alert(`刪除成員失敗: ${error.message}`);
+          showGlobalToast(`刪除成員失敗: ${error.message}`, 'error');
           closeConfirmModal();
         }
       }
@@ -828,9 +827,10 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
 
       setBatchInput('');
       setIsBatchAdding(false);
+      showGlobalToast(`成功批量新增 ${lines.length} 名成員`, 'success');
     } catch (error: any) {
       console.error("Error batch adding members:", error);
-      alert(`批量新增失敗: ${error.message}`);
+      showGlobalToast(`批量新增失敗: ${error.message}`, 'error');
     } finally {
       setIsSaving(false);
     }
@@ -838,12 +838,6 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
 
   return (
     <div>
-      {toast.show && (
-        <div className="fixed bottom-6 right-6 bg-stone-800 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-in slide-in-from-bottom-5 z-50">
-          <Check className="w-5 h-5 text-green-400" />
-          {toast.message}
-        </div>
-      )}
       <div className="flex items-center gap-4 mb-6">
         <button onClick={onBack} className="p-2 hover:bg-stone-100 rounded-lg transition-colors">
           <ChevronLeft className="w-6 h-6 text-stone-600" />
@@ -1134,7 +1128,7 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
 }
 
 function CostumesManager() {
-  const { db, addCharacter, updateCharacter, deleteCharacter, addCostume, updateCostume, deleteCostume, updateCharactersOrder, updateCostumesOrder } = useAppContext();
+  const { db, addCharacter, updateCharacter, deleteCharacter, addCostume, updateCostume, deleteCostume, updateCharactersOrder, updateCostumesOrder, showToast } = useAppContext();
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
   const [selectedCostumeId, setSelectedCostumeId] = useState<string | null>(null);
   const [confirmModal, setConfirmModal] = useState({
@@ -1203,7 +1197,7 @@ function CostumesManager() {
     try {
       await updateCharactersOrder(orderedCharacters);
     } catch (error: any) {
-      alert(`更新排序失敗: ${error.message}`);
+      showToast(`更新排序失敗: ${error.message}`, 'error');
     }
   };
 
@@ -1214,7 +1208,7 @@ function CostumesManager() {
     try {
       await updateCostumesOrder(orderedCostumes);
     } catch (error: any) {
-      alert(`更新排序失敗: ${error.message}`);
+      showToast(`更新排序失敗: ${error.message}`, 'error');
     }
   };
 
@@ -1252,8 +1246,9 @@ function CostumesManager() {
         try {
           await addCharacter(name, characters.length + 1);
           closeInputModal();
+          showToast('角色新增成功', 'success');
         } catch (error: any) {
-          alert(`新增角色失敗: ${error.message}`);
+          showToast(`新增角色失敗: ${error.message}`, 'error');
         }
       }
     });
@@ -1279,9 +1274,10 @@ function CostumesManager() {
           setSelectedCharacterId(null);
           setSelectedCostumeId(null);
           closeConfirmModal();
+          showToast('角色已刪除', 'success');
         } catch (error: any) {
           console.error("Error deleting character:", error);
-          alert(`刪除角色失敗: ${error.message}`);
+          showToast(`刪除角色失敗: ${error.message}`, 'error');
           closeConfirmModal();
         }
       }
@@ -1291,7 +1287,7 @@ function CostumesManager() {
   const handleUpdateCharacter = async () => {
     if (!selectedCharacterId) return;
     await updateCharacter(selectedCharacterId, { name: editCharacterName, orderNum: editCharacterOrder });
-    alert('角色更新成功');
+    showToast('角色更新成功', 'success');
   };
 
   const handleAddCostume = () => {
@@ -1304,8 +1300,9 @@ function CostumesManager() {
         try {
           await addCostume(selectedCharacterId, name, costumes.length + 1);
           closeInputModal();
+          showToast('服裝新增成功', 'success');
         } catch (error: any) {
-          alert(`新增服裝失敗: ${error.message}`);
+          showToast(`新增服裝失敗: ${error.message}`, 'error');
         }
       }
     });
@@ -1324,8 +1321,9 @@ function CostumesManager() {
           await deleteCostume(selectedCostumeId);
           setSelectedCostumeId(null);
           closeConfirmModal();
+          showToast('服裝已刪除', 'success');
         } catch (error: any) {
-          alert(`刪除服裝失敗: ${error.message}`);
+          showToast(`刪除服裝失敗: ${error.message}`, 'error');
           closeConfirmModal();
         }
       }
@@ -1536,7 +1534,7 @@ function CostumesManager() {
 }
 
 function BackupManager() {
-  const { db, restoreData } = useAppContext();
+  const { db, restoreData, showToast } = useAppContext();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleBackup = () => {
@@ -1550,7 +1548,7 @@ function BackupManager() {
       link.click();
     } catch (error) {
       console.error("Backup failed:", error);
-      alert("備份失敗，請檢查 console log 獲取更多資訊。");
+      showToast("備份失敗，請檢查 console log 獲取更多資訊。", 'error');
     }
   };
 
@@ -1567,14 +1565,14 @@ function BackupManager() {
           // Basic validation
           if (restoredDb.guilds && restoredDb.members && restoredDb.costumes) {
             await restoreData(restoredDb);
-            alert("資料已成功還原！");
+            showToast("資料已成功還原！", 'success');
           } else {
-            alert("無效的備份檔案格式。");
+            showToast("無效的備份檔案格式。", 'error');
           }
         }
       } catch (error) {
         console.error("Restore failed:", error);
-        alert("還原失敗，請確保檔案格式正確。");
+        showToast("還原失敗，請確保檔案格式正確。", 'error');
       }
     };
     reader.readAsText(file);

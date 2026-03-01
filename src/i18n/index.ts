@@ -6,7 +6,7 @@ import HttpBackend from 'i18next-http-backend';
 // 開發環境直接用 import，生產環境建議用 http-backend 非同步載入
 import zhTWCommon from './locales/zh-TW/common.json';
 import enCommon from './locales/en/common.json';
-const savedLng = localStorage.getItem('i18nLng') || 'zh-TW';
+const savedLng = localStorage.getItem('i18nextLng') || 'zh-TW';
 
 i18n
     .use(initReactI18next)           // 綁定 react

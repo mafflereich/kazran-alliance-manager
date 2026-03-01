@@ -77,3 +77,11 @@ export interface ArchivedMember {
   archiveRemark: string;
   membersArchiveHistory: ArchiveHistory[];
 }
+
+export type ToastType = 'success' | 'error' | 'info' | 'warning';
+
+export interface Toast {
+  id: string;
+  message: string;
+  type: ToastType;
+}

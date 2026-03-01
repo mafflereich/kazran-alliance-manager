@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Database, Guild, Member, Costume, Role, User, Character, ArchivedMember, ArchiveHistory } from './types';
+import { Database, Guild, Member, Costume, Role, User, Character, ArchivedMember, ArchiveHistory, Toast, ToastType } from './types';
 import { supabase, supabaseInsert, supabaseUpdate, supabaseUpsert, toCamel } from './supabase';
 import { v4 as uuidv4 } from 'uuid';
 import { formatDate } from './utils';
@@ -68,6 +68,11 @@ interface AppContextType {
 
   // Data management
   restoreData: (data: Partial<Database>) => Promise<void>;
+
+  // Toast management
+  toasts: Toast[];
+  showToast: (message: string, type?: ToastType) => void;
+  removeToast: (id: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -113,7 +118,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (now - parseInt(loginTime, 10) > SESSION_TIMEOUT) {
             setCurrentUser(null);
             setCurrentView(null);
-            alert('登入已超過 24 小時，請重新登入。');
+            showToast('登入已超過 24 小時，請重新登入。', 'warning');
           }
         }
       }
@@ -133,6 +138,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const isLoaded = loadedStates.global && loadedStates.guilds && loadedStates.costumes && loadedStates.users && loadedStates.characters;
 
   const [isOffline, setIsOffline] = useState(false);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const showToast = (message: string, type: ToastType = 'info') => {
+    const id = uuidv4();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => removeToast(id), 10000);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  };
 
   // Subscribe to global data (costumes, users) and guilds
   useEffect(() => {
@@ -200,7 +216,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (error) {
       console.error("Error fetching members:", error);
       setIsOffline(true);
-      alert("讀取成員列表失敗：權限不足。將切換至離線模式。");
+      showToast("讀取成員列表失敗：權限不足。將切換至離線模式。", 'error');
       return;
     }
 
@@ -252,20 +268,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const addMember = async (guildId: string, name: string, role: Role = '成員', note: string = '') => {
+    // Check if member already exists in active status
+    const { data: activeData, error: activeError } = await supabase
+      .from('members')
+      .select('id, name')
+      .eq('name', name)
+      .eq('status', 'active')
+      .maybeSingle();
 
-    const { data: archivedData } = await supabase.from('members').select('name, id').eq('status', 'archived');
-    const archivedMember = toCamel(archivedData.find((archivedMember) => archivedMember.name == name)) as ArchivedMember;
+    if (activeError) {
+      console.error('Error checking active member:', activeError);
+    }
 
-    if (archivedMember) {
-      unarchiveMember(archivedMember.id, guildId);
+    if (activeData) {
+      showToast(`已存在名為 ${name} 的活躍成員`, 'warning');
       return;
     }
 
-    const { data: nowData } = await supabase.from('members').select('name').eq('status', 'active');
-    const nowMember = toCamel(nowData.find((nowMember) => nowMember.name == name)) as Member;
+    // Check if member exists in archived status
+    const { data: archivedData, error: archivedError } = await supabase
+      .from('members')
+      .select('id, name')
+      .eq('name', name)
+      .eq('status', 'archived')
+      .maybeSingle();
 
-    if (nowMember) {
-      alert(`已存在名為 ${nowMember.name} 的成員`);
+    if (archivedError) {
+      console.error('Error checking archived member:', archivedError);
+    }
+
+    if (archivedData) {
+      // If archived, unarchive them to the target guild
+      await unarchiveMember(archivedData.id, guildId);
       return;
     }
 
@@ -389,7 +423,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const archiveMember = async (memberId: string, fromGuildId: string, reason: string) => {
     if (isOffline) {
-      alert("離線模式無法執行此操作");
+      showToast("離線模式無法執行此操作", 'warning');
       return;
     }
 
@@ -422,11 +456,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const unarchiveMember = async (memberId: string, targetGuildId: string) => {
     if (isOffline) {
-      alert("離線模式無法執行此操作");
+      showToast("離線模式無法執行此操作", 'warning');
       return;
     }
 
-    const { data: archivedData } = await supabase
+    const { data: archivedData, error: fetchError } = await supabase
       .from('members')
       .select(`
           id,
@@ -443,16 +477,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             )
           )
         `)
-      .eq('status', 'archived') as { data: ArchivedMember[] };
+      .eq('id', memberId)
+      .single();
 
-    const archivedMember = toCamel(archivedData.find((archivedMember) => archivedMember.id == memberId)) as ArchivedMember;
+    if (fetchError || !archivedData) {
+      console.error('Error fetching archived member details:', fetchError);
+      return;
+    }
 
-    const latestHistory = toCamel(archivedMember.membersArchiveHistory[0]) as ArchiveHistory;
+    const archivedMember = toCamel(archivedData) as ArchivedMember;
+
+    const latestHistory = archivedMember.membersArchiveHistory?.[0];
     const archivedAt = latestHistory ? formatDate(latestHistory.archivedAt) : '未知時間';
-    const archiveCount = archivedMember.membersArchiveHistory.length;
+    const archiveCount = archivedMember.membersArchiveHistory?.length || 0;
     const remark = `最後封存：${archivedAt} (共 ${archiveCount} 次)`;
 
-    const { error } = await supabaseUpdate('members',
+    const { error: updateError } = await supabaseUpdate('members',
       {
         status: 'active',
         guild_id: targetGuildId,
@@ -462,7 +502,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         'id': memberId
       });
 
-    if (error) throw error;
+    if (updateError) throw updateError;
+
+    // Update local state if needed (optional, depends on if we want to immediately show them in the guild)
+    // Usually fetchMembers will handle this when the view changes, but for addMember flow it's good to have.
+    setDbState(prev => {
+      const updatedMembers = { ...prev.members };
+      // If the member was already in our local state (unlikely if they were archived, unless we fetched all)
+      if (updatedMembers[memberId]) {
+        updatedMembers[memberId] = {
+          ...updatedMembers[memberId],
+          status: 'active',
+          guildId: targetGuildId,
+          archiveRemark: remark
+        };
+      }
+      return { ...prev, members: updatedMembers };
+    });
   };
 
   const updateMemberExclusiveWeapon = async (memberId: string, characterId: string, hasWeapon: boolean) => {
@@ -676,8 +732,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         await supabaseUpsert('settings', data.settings);
       }
 
-      alert('資料還原成功！頁面即將重新整理。');
-      window.location.reload();
+      showToast('資料還原成功！頁面即將重新整理。', 'success');
+      setTimeout(() => window.location.reload(), 2000);
     } catch (error) {
       console.error('Error restoring data:', error);
       throw error;
@@ -768,7 +824,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       addCharacter, updateCharacter, deleteCharacter, updateCharactersOrder,
       addCostume, updateCostume, deleteCostume, updateCostumesOrder,
       updateUserPassword, updateUserRole, addUser, deleteUser, updateSettings,
-      restoreData
+      restoreData,
+      toasts, showToast, removeToast
     }}>
       {children}
     </AppContext.Provider>

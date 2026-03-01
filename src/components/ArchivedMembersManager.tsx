@@ -9,7 +9,7 @@ import { ArchivedMember, ArchiveHistory } from '../types';
 
 
 export default function ArchivedMembersManager() {
-  const { db, unarchiveMember } = useAppContext();
+  const { db, unarchiveMember, showToast } = useAppContext();
   const [archivedMembers, setArchivedMembers] = useState<ArchivedMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedMemberId, setExpandedMemberId] = useState<string | null>(null);
@@ -122,11 +122,11 @@ export default function ArchivedMembersManager() {
         setCurrentPage(maxPage);
       }
 
-      alert(`已成功將成員 ${unarchiveModal.member.name} 移動至 ${db.guilds[unarchiveModal.targetGuildId]?.name}`);
+      showToast(`已成功將成員 ${unarchiveModal.member.name} 移動至 ${db.guilds[unarchiveModal.targetGuildId]?.name}`, 'success');
       closeUnarchiveModal();
     } catch (error: any) {
       console.error('Unarchive failed:', error);
-      alert(`解除封存失敗: ${error.message}`);
+      showToast(`解除封存失敗: ${error.message}`, 'error');
     } finally {
       setIsProcessing(false);
     }
