@@ -9,7 +9,7 @@ i18n
     .use(LanguageDetector)
     .use(HttpBackend)
     .init({
-        lng: 'zh-TW',                     // 強制起始語言
+        // 移除 lng: 'zh-TW' 以允許 LanguageDetector 從 localStorage 讀取
         fallbackLng: {
             'zh-HK': ['zh-TW'],
             'zh-MO': ['zh-TW'],
@@ -26,7 +26,7 @@ i18n
         },
         detection: {
             order: ['localStorage', 'navigator'],
-            lookupLocalStorage: 'preferredLanguage',
+            lookupLocalStorage: 'i18nextLng', // 使用標準 key 名稱
             caches: ['localStorage'],
         },
         interpolation: {
