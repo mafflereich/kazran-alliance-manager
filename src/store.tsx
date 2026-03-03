@@ -77,6 +77,8 @@ interface AppContextType {
   // Music management
   isMuted: boolean;
   setIsMuted: (muted: boolean) => void;
+
+  isRoleLoading: boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -103,6 +105,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return null;
   });
 
+  const [isRoleLoading, setIsRoleLoading] = useState(false);
+
   const setCurrentUser = (user: string | null) => {
     setCurrentUserState(user);
     if (user) {
@@ -111,6 +115,37 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } else {
       sessionStorage.removeItem('currentUser');
       sessionStorage.removeItem('loginTimestamp');
+    }
+  };
+
+  // 新增：抓取當前登入者權限的函數
+  const fetchCurrentUserRole = async (username: string) => {
+    setIsRoleLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('admin_users')
+        .select('*')
+        .eq('username', username) // 只抓自己的資料
+        .single(); // 我們預期只會有一筆
+
+      if (error) {
+         console.error("無法取得使用者權限:", error);
+         return;
+      }
+
+      if (data) {
+        setDbState(prev => ({
+          ...prev,
+          users: {
+            ...prev.users,
+            [data.username]: toCamel(data) // 把抓到的權限更新進去
+          }
+        }));
+      }
+    } catch (err) {
+      console.error("取得權限發生錯誤:", err);
+    } finally {
+      setIsRoleLoading(false);
     }
   };
 
@@ -124,10 +159,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             setCurrentUser(null);
             setCurrentView(null);
             showToast(t('common.session_expired'), 'warning');
+          } else {
+            // 如果 session 還有效，去抓這個人的真實權限
+            fetchCurrentUserRole(currentUser);
           }
+        } else {
+          // 如果有 currentUser 但沒有 timestamp（防呆），也去抓權限
+          fetchCurrentUserRole(currentUser);
         }
       }
     };
+
+    // 網頁剛載入或 currentUser 改變時執行一次
+    checkSession();
 
     const interval = setInterval(checkSession, 3600000); // Check every hour
     return () => clearInterval(interval);
@@ -168,24 +212,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        const [guildsRes, charactersRes, costumesRes, usersRes, settingsRes] = await Promise.all([
+        const [guildsRes, charactersRes, costumesRes, settingsRes] = await Promise.all([
           supabase.from('guilds').select('*'),
           supabase.from('characters').select('*'),
           supabase.from('costumes').select('*'),
-          supabase.from('admin_users').select('*'),
           supabase.from('settings').select('*'),
         ]);
 
         if (guildsRes.error) throw guildsRes.error;
         if (charactersRes.error) throw charactersRes.error;
         if (costumesRes.error) throw costumesRes.error;
-        if (usersRes.error) throw usersRes.error;
         if (settingsRes.error) throw settingsRes.error;
 
         const guilds = guildsRes.data.reduce((acc, guild) => ({ ...acc, [guild.id]: toCamel(guild) }), {});
         const characters = charactersRes.data.reduce((acc, char) => ({ ...acc, [char.id]: toCamel(char) }), {});
         const costumes = costumesRes.data.reduce((acc, costume) => ({ ...acc, [costume.id]: toCamel(costume) }), {});
-        const users = usersRes.data.reduce((acc, user) => ({ ...acc, [user.username]: toCamel(user) }), {});
         const settings = settingsRes.data.reduce((acc, setting) => ({ ...acc, [setting.id]: toCamel(setting) }), {});
 
         setDbState(prev => ({
@@ -193,7 +234,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           guilds,
           characters,
           costumes,
-          users,
           settings,
         }));
 
@@ -214,6 +254,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Keep track of member subscription
   const [memberUnsub, setMemberUnsub] = useState<(() => void) | null>(null);
+
+
 
   // Function to fetch members for a specific guild
   const fetchMembers = async (guildId: string, includeNote: boolean = false) => {
@@ -835,7 +877,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       addCostume, updateCostume, deleteCostume, updateCostumesOrder,
       updateUserPassword, updateUserRole, addUser, deleteUser, updateSetting,
       restoreData, toasts, showToast, removeToast,
-      isMuted, setIsMuted
+      isMuted, setIsMuted, isRoleLoading
     }}>
       {children}
     </AppContext.Provider>

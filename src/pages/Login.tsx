@@ -11,7 +11,7 @@ const DOMAIN_SUFFIX = '@kazran.com';
 
 export default function Login() {
   const { t } = useTranslation();
-  const { db, setCurrentView, setCurrentUser, currentUser } = useAppContext();
+  const { db, setCurrentView, setCurrentUser, currentUser, isRoleLoading } = useAppContext();
   const [selectedGuildForLogin, setSelectedGuildForLogin] = useState<{ id: string, name: string } | null>(null);
   const [guildPassword, setGuildPassword] = useState('');
   const [error, setError] = useState('');
@@ -92,7 +92,12 @@ export default function Login() {
                 <Users className="w-5 h-5" /> {t('login.select_guild')}
               </h2>
 
-              {Object.keys(db.guilds).length === 0 ? (
+              {isRoleLoading ? (
+                <div className="text-center text-stone-500 py-8 flex items-center justify-center gap-2">
+                  <div className="w-5 h-5 border-2 border-stone-500 border-t-transparent rounded-full animate-spin"></div>
+                  {t('common.loading', '載入中...')}
+                </div>
+              ) : Object.keys(db.guilds).length === 0 ? (
                 <div className="text-center text-stone-500 py-8">
                   {t('login.no_guilds')}
                 </div>
