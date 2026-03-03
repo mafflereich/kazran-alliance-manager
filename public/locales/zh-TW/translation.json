@@ -262,7 +262,17 @@
     "guild_list": "公會列表",
     "scroll_hint": "可左右拖曳或捲動查看完整表格",
     "no_members": "該公會目前沒有成員",
-    "member_count": "成員數"
+    "member_count": "成員數",
+    "global_search_member": "全域搜尋成員",
+    "enter_member_name": "請輸入成員名稱...",
+    "search_results": "搜尋結果",
+    "go_to_guild": "前往公會",
+    "view_guild": "查看公會",
+    "no_results": "找不到符合的成員",
+    "search_hint": "輸入名稱搜尋成員",
+    "include_archived": "包括封存成員",
+    "member_archived": "成員已封存",
+    "archived": "已封存"
   },
   "guilds": {
     "add_guild": "新增公會",

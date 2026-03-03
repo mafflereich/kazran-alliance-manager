@@ -262,7 +262,17 @@
     "guild_list": "Guild List",
     "scroll_hint": "Drag left/right or scroll to view the full table",
     "no_members": "This guild currently has no members",
-    "member_count": "Member Count"
+    "member_count": "Member Count",
+    "global_search_member": "Global Search Member",
+    "enter_member_name": "Enter member name...",
+    "search_results": "Search Results",
+    "go_to_guild": "Go to Guild",
+    "view_guild": "View Guild",
+    "no_results": "No matching members found",
+    "search_hint": "Enter name to search for members",
+    "include_archived": "Include Archived Members",
+    "member_archived": "Member is archived",
+    "archived": "Archived"
   },
   "guilds": {
     "add_guild": "Add Guild",

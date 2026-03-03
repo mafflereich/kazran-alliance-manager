@@ -32,6 +32,7 @@ interface AppContextType {
   // Member functions
   fetchMembers: (guildId: string, includeNote?: boolean) => void;
   fetchAllMembers: () => Promise<void>;
+  searchMembers: (query: string, includeArchived?: boolean, page?: number, pageSize?: number) => Promise<{ data: Member[], total: number }>;
   addMember: (guildId: string, name: string, role?: Role, note?: string) => Promise<void>;
   updateMember: (memberId: string, data: Partial<Member>) => Promise<void>;
   deleteMember: (memberId: string) => Promise<void>;
@@ -299,6 +300,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const allMembers: Record<string, Member> = data.reduce((acc, member) => ({ ...acc, [member.id]: toCamel(member) }), {});
     setDbState(prev => ({ ...prev, members: allMembers }));
+  };
+
+  const searchMembers = async (query: string, includeArchived: boolean = false, page: number = 1, pageSize: number = 20): Promise<{ data: Member[], total: number }> => {
+    if (!query.trim()) return { data: [], total: 0 };
+    
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    let queryBuilder = supabase
+      .from('members')
+      .select('id, name, guild_id, role, records, exclusive_weapons, updated_at, status, archive_remark', { count: 'exact' })
+      .ilike('name', `%${query}%`)
+      .order('status', { ascending: true }) // active comes before archived
+      .order('name', { ascending: true })
+      .range(from, to);
+
+    if (!includeArchived) {
+      queryBuilder = queryBuilder.eq('status', 'active');
+    }
+
+    const { data, error, count } = await queryBuilder;
+
+    if (error) {
+      console.error("Error searching members:", error);
+      return { data: [], total: 0 };
+    }
+
+    return { data: data.map(toCamel), total: count || 0 };
   };
 
   // Cleanup subscription on unmount
@@ -876,7 +905,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   return (
     <AppContext.Provider value={{
       db, setDb, currentView, setCurrentView, currentUser, setCurrentUser,
-      fetchMembers, fetchAllMembers, addMember, updateMember, deleteMember, archiveMember, unarchiveMember, updateMemberCostumeLevel, updateMemberExclusiveWeapon,
+      fetchMembers, fetchAllMembers, searchMembers, addMember, updateMember, deleteMember, archiveMember, unarchiveMember, updateMemberCostumeLevel, updateMemberExclusiveWeapon,
       addGuild, updateGuild, deleteGuild,
       addCharacter, updateCharacter, deleteCharacter, updateCharactersOrder,
       addCostume, updateCostume, deleteCostume, updateCostumesOrder,
