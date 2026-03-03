@@ -140,19 +140,19 @@ export default function ArchivedMembersManager() {
   );
 
   if (loading) {
-    return <div className="p-8 text-center text-stone-500">{t('common.loading')}</div>;
+    return <div className="p-8 text-center text-stone-500 dark:text-stone-400">{t('common.loading')}</div>;
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2 mb-6">
-        <Archive className="w-6 h-6 text-stone-600" />
-        <h2 className="text-2xl font-bold text-stone-800">{t('nav.archived_members')}</h2>
+        <Archive className="w-6 h-6 text-stone-600 dark:text-stone-400" />
+        <h2 className="text-2xl font-bold text-stone-800 dark:text-stone-200">{t('nav.archived_members')}</h2>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
+      <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-stone-200 dark:border-stone-700 overflow-hidden">
         <table className="w-full text-left border-collapse">
-          <thead className="bg-stone-50 border-b border-stone-200 text-stone-600">
+          <thead className="bg-stone-50 dark:bg-stone-700 border-b border-stone-200 dark:border-stone-600 text-stone-600 dark:text-stone-300">
             <tr>
               <th className="p-4 font-semibold">{t('common.name')}</th>
               <th className="p-4 font-semibold">{t('archived.last_guild')}</th>
@@ -161,10 +161,10 @@ export default function ArchivedMembersManager() {
               <th className="p-4 font-semibold text-right">{t('common.actions')}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-stone-100">
+          <tbody className="divide-y divide-stone-100 dark:divide-stone-700">
             {paginatedMembers.length === 0 ? (
               <tr>
-                <td colSpan={5} className="p-8 text-center text-stone-500">
+                <td colSpan={5} className="p-8 text-center text-stone-500 dark:text-stone-400">
                   {t('archived.no_archived_members')}
                 </td>
               </tr>
@@ -175,16 +175,16 @@ export default function ArchivedMembersManager() {
 
                 return (
                   <React.Fragment key={member.id}>
-                    <tr className={`hover:bg-stone-50 transition-colors ${isExpanded ? 'bg-stone-50' : ''}`}>
-                      <td className="p-4 font-medium text-stone-800">{member.name}</td>
-                      <td className="p-4 text-stone-600">
+                    <tr className={`hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors ${isExpanded ? 'bg-stone-50 dark:bg-stone-700' : ''}`}>
+                      <td className="p-4 font-medium text-stone-800 dark:text-stone-200">{member.name}</td>
+                      <td className="p-4 text-stone-600 dark:text-stone-400">
                         {latestHistory?.guilds?.name || t('common.unknown')}
                       </td>
-                      <td className="p-4 text-stone-500 text-sm">
+                      <td className="p-4 text-stone-500 dark:text-stone-400 text-sm">
                         {latestHistory ? formatDate(latestHistory.archivedAt) : '-'}
                       </td>
                       <td className="p-4 text-center text-stone-600">
-                        <span className="bg-stone-100 px-2 py-1 rounded-full text-xs font-medium">
+                        <span className="bg-stone-100 dark:bg-stone-700 px-2 py-1 rounded-full text-xs font-medium">
                           {member.membersArchiveHistory.length}
                         </span>
                       </td>
@@ -193,8 +193,8 @@ export default function ArchivedMembersManager() {
                           <button
                             onClick={() => toggleExpand(member.id)}
                             className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-colors ${isExpanded
-                              ? 'bg-amber-100 text-amber-700'
-                              : 'text-stone-500 hover:bg-stone-100'
+                              ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                              : 'text-stone-500 hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-stone-700'
                               }`}
                           >
                             <History className="w-4 h-4" />
@@ -203,7 +203,7 @@ export default function ArchivedMembersManager() {
                           </button>
                           <button
                             onClick={() => openUnarchiveModal(member)}
-                            className="flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-600 hover:bg-green-100 rounded-lg text-sm transition-colors"
+                            className="flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-600 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50 rounded-lg text-sm transition-colors"
                           >
                             <RotateCcw className="w-4 h-4" />
                             {t('archived.unarchive')}
@@ -222,29 +222,29 @@ export default function ArchivedMembersManager() {
                               animate={{ height: 'auto', opacity: 1 }}
                               exit={{ height: 0, opacity: 0 }}
                               transition={{ duration: 0.2 }}
-                              className="bg-stone-50/50 overflow-hidden"
+                              className="bg-stone-50/50 dark:bg-stone-800/50 overflow-hidden"
                             >
                               <div className="p-4 pl-12 pr-12">
-                                <h4 className="text-sm font-semibold text-stone-500 mb-3 flex items-center gap-2">
+                                <h4 className="text-sm font-semibold text-stone-500 dark:text-stone-400 mb-3 flex items-center gap-2">
                                   <History className="w-4 h-4" /> {t('archived.archive_history')}
                                 </h4>
-                                <div className="space-y-3 relative before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-0.5 before:bg-stone-200">
+                                <div className="space-y-3 relative before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-0.5 before:bg-stone-200 dark:before:bg-stone-600">
                                   {member.membersArchiveHistory.map((history, index) => (
                                     <div key={history.id} className="relative pl-6">
-                                      <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-stone-200 border-2 border-white"></div>
-                                      <div className="bg-white p-3 rounded-lg border border-stone-200 shadow-sm flex flex-wrap gap-4 items-center justify-between">
+                                      <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-stone-200 dark:bg-stone-600 border-2 border-white dark:border-stone-800"></div>
+                                      <div className="bg-white dark:bg-stone-700 p-3 rounded-lg border border-stone-200 dark:border-stone-600 shadow-sm flex flex-wrap gap-4 items-center justify-between">
                                         <div className="flex items-center gap-4">
-                                          <span className="text-xs font-bold text-stone-400 w-6">#{member.membersArchiveHistory.length - index}</span>
+                                          <span className="text-xs font-bold text-stone-400 dark:text-stone-500 w-6">#{member.membersArchiveHistory.length - index}</span>
                                           <div className="flex flex-col">
-                                            <span className="text-sm font-medium text-stone-800">
+                                            <span className="text-sm font-medium text-stone-800 dark:text-stone-200">
                                               {t('archived.left_guild')}: {history.guilds?.name || t('common.unknown')}
                                             </span>
-                                            <span className="text-xs text-stone-500">
+                                            <span className="text-xs text-stone-500 dark:text-stone-400">
                                               {formatDate(history.archivedAt)}
                                             </span>
                                           </div>
                                         </div>
-                                        <div className="text-sm text-stone-600 bg-stone-50 px-3 py-1 rounded border border-stone-100 max-w-md truncate">
+                                        <div className="text-sm text-stone-600 dark:text-stone-300 bg-stone-50 dark:bg-stone-600 px-3 py-1 rounded border border-stone-100 dark:border-stone-500 max-w-md truncate">
                                           {t('archived.reason')}: {history.archiveReason || t('archived.no_reason')}
                                         </div>
                                       </div>
@@ -271,17 +271,17 @@ export default function ArchivedMembersManager() {
           <button
             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
-            className="px-4 py-2 bg-white border border-stone-200 rounded-lg text-stone-600 hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {t('archived.prev_page')}
           </button>
-          <span className="text-stone-600 font-medium">
+          <span className="text-stone-600 dark:text-stone-400 font-medium">
             {t('archived.page_info', { current: currentPage, total: totalPages })}
           </span>
           <button
             onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
             disabled={currentPage === totalPages}
-            className="px-4 py-2 bg-white border border-stone-200 rounded-lg text-stone-600 hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {t('archived.next_page')}
           </button>
@@ -290,22 +290,22 @@ export default function ArchivedMembersManager() {
 
       {/* Unarchive Modal */}
       {unarchiveModal.isOpen && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="bg-stone-50 px-6 py-4 border-b border-stone-200 flex justify-between items-center">
-              <h3 className="text-lg font-bold text-stone-800 flex items-center gap-2">
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-stone-900/60 dark:bg-black/70 backdrop-blur-sm">
+          <div className="bg-white dark:bg-stone-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="bg-stone-50 dark:bg-stone-700 px-6 py-4 border-b border-stone-200 dark:border-stone-600 flex justify-between items-center">
+              <h3 className="text-lg font-bold text-stone-800 dark:text-stone-200 flex items-center gap-2">
                 <RotateCcw className="w-5 h-5 text-green-600" />
                 {t('archived.confirm_unarchive')}
               </h3>
-              <button onClick={closeUnarchiveModal} className="p-2 hover:bg-stone-200 rounded-full transition-colors">
-                <X className="w-5 h-5 text-stone-500" />
+              <button onClick={closeUnarchiveModal} className="p-2 hover:bg-stone-200 dark:hover:bg-stone-600 rounded-full transition-colors">
+                <X className="w-5 h-5 text-stone-500 dark:text-stone-400" />
               </button>
             </div>
 
             <div className="p-6 space-y-4">
-              <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg flex gap-3">
+              <div className="bg-amber-50 dark:bg-amber-900/30 border-l-4 border-amber-400 dark:border-amber-600 p-4 rounded-r-lg flex gap-3">
                 <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
-                <div className="text-sm text-amber-800">
+                <div className="text-sm text-amber-800 dark:text-amber-200">
                   <p className="font-bold mb-1">{t('archived.will_restore')}</p>
                   <p>{t('archived.unarchive_desc1')} <strong>{unarchiveModal.member?.name}</strong>。</p>
                   <p>{t('archived.unarchive_desc2')}</p>
@@ -313,11 +313,11 @@ export default function ArchivedMembersManager() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-stone-600 mb-1">
+                <label className="block text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">
                   {t('archived.select_target_guild')}
                 </label>
                 <select
-                  className="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:ring-2 focus:ring-green-500 outline-none"
+                  className="w-full p-2.5 border border-stone-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 dark:text-stone-100 focus:ring-2 focus:ring-green-500 outline-none"
                   value={unarchiveModal.targetGuildId}
                   onChange={(e) => setUnarchiveModal(prev => ({ ...prev, targetGuildId: e.target.value }))}
                 >
@@ -348,7 +348,7 @@ export default function ArchivedMembersManager() {
                 </button>
                 <button
                   onClick={closeUnarchiveModal}
-                  className="flex-1 py-2.5 bg-stone-200 text-stone-700 rounded-xl font-bold hover:bg-stone-300 transition-all active:scale-95"
+                  className="flex-1 py-2.5 bg-stone-200 dark:bg-stone-600 text-stone-700 dark:text-stone-200 rounded-xl font-bold hover:bg-stone-300 dark:hover:bg-stone-500 transition-all active:scale-95"
                 >
                   {t('common.cancel')}
                 </button>
