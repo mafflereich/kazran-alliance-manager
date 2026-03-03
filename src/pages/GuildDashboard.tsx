@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useAppContext } from '../store';
-import { ChevronLeft, Edit2, Menu, X, Shield, Swords } from 'lucide-react';
+import { ChevronLeft, Edit2, Menu, X, Shield, Swords, ArrowDownNarrowWide, ArrowDownWideNarrow } from 'lucide-react';
 import MemberEditModal from '../components/MemberEditModal';
 import ConfirmModal from '../components/ConfirmModal';
 import Footer from '../components/Footer';
@@ -15,6 +15,21 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+  const [sortConfig, setSortConfig] = useState<{ key: 'member' | string, order: 'asc' | 'desc' }>({ key: 'member', order: 'asc' });
+
+  React.useEffect(() => {
+    setSortConfig({ key: 'member', order: 'asc' });
+  }, [guildId]);
+
+  const handleSort = (key: string) => {
+    setSortConfig(prev => {
+      if (prev.key === key) {
+        return { key, order: prev.order === 'asc' ? 'desc' : 'asc' };
+      }
+      // Default for member is asc, default for costume is desc (+5 to -1)
+      return { key, order: key === 'member' ? 'asc' : 'desc' };
+    });
+  };
 
   React.useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -120,13 +135,42 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
         'coleader': 2,
         'member': 3
       };
-      const orderA = roleOrder[a[1].role] || 99;
-      const orderB = roleOrder[b[1].role] || 99;
 
-      if (orderA !== orderB) {
-        return orderA - orderB;
+      const getTieBreak = () => {
+        const orderA = roleOrder[a[1].role] || 99;
+        const orderB = roleOrder[b[1].role] || 99;
+        if (orderA !== orderB) return orderA - orderB;
+        return a[1].name.localeCompare(b[1].name);
+      };
+
+      if (sortConfig.key === 'member') {
+        if (sortConfig.order === 'asc') {
+          const orderA = roleOrder[a[1].role] || 99;
+          const orderB = roleOrder[b[1].role] || 99;
+          if (orderA !== orderB) return orderA - orderB;
+          return a[1].name.localeCompare(b[1].name);
+        } else {
+          const descRoleOrder: Record<string, number> = {
+            'member': 1,
+            'coleader': 2,
+            'leader': 3
+          };
+          const orderA = descRoleOrder[a[1].role] || 99;
+          const orderB = descRoleOrder[b[1].role] || 99;
+          if (orderA !== orderB) return orderA - orderB;
+          return b[1].name.localeCompare(a[1].name);
+        }
+      } else {
+        // Costume sorting
+        const costumeId = sortConfig.key;
+        const levelA = a[1].records[costumeId]?.level ?? -1;
+        const levelB = b[1].records[costumeId]?.level ?? -1;
+
+        if (levelA !== levelB) {
+          return sortConfig.order === 'asc' ? levelA - levelB : levelB - levelA;
+        }
+        return getTieBreak();
       }
-      return a[1].name.localeCompare(b[1].name);
     });
   const costumes = Object.values(db.costumes).sort((a, b) => {
     const charA = db.characters[a.characterId];
@@ -267,9 +311,23 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
                     <table className="w-full text-left border-collapse min-w-max">
                       <thead>
                         <tr className="bg-stone-50 text-stone-600">
-                          <th className="p-3 font-semibold sticky top-0 left-0 bg-stone-50 z-30 border-r border-b-2 border-stone-200 shadow-[1px_0_0_0_#e7e5e4]">{t('common.member')}</th>
+                          <th
+                            className="p-3 font-semibold sticky top-0 left-0 bg-stone-50 z-30 border-r border-b-2 border-stone-200 shadow-[1px_0_0_0_#e7e5e4] cursor-pointer hover:bg-stone-100 transition-colors"
+                            onClick={() => handleSort('member')}
+                          >
+                            <div className="flex items-center gap-2">
+                              {t('common.member')}
+                              {sortConfig.key === 'member' && (
+                                sortConfig.order === 'asc' ? <ArrowDownNarrowWide className="w-4 h-4" /> : <ArrowDownWideNarrow className="w-4 h-4" />
+                              )}
+                            </div>
+                          </th>
                           {costumes.map(c => (
-                            <th key={c.id} className="p-3 font-semibold text-center text-xs w-24 border-r border-b-2 border-stone-200 last:border-r-0 sticky top-0 bg-stone-50 z-20">
+                            <th
+                              key={c.id}
+                              className="p-3 font-semibold text-center text-xs w-24 border-r border-b-2 border-stone-200 last:border-r-0 sticky top-0 bg-stone-50 z-20 cursor-pointer hover:bg-stone-100 transition-colors"
+                              onClick={() => handleSort(c.id)}
+                            >
                               {c.imageName && (
                                 <div className="w-[50px] h-[50px] mx-auto mb-2 bg-stone-100 rounded-lg overflow-hidden border border-stone-200">
                                   <img
@@ -284,7 +342,14 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
                                 </div>
                               )}
                               <div className="truncate w-20 mx-auto" title={i18n.language === 'en' ? (c.nameE || c.name) : c.name}>{i18n.language === 'en' ? (c.nameE || c.name) : c.name}</div>
-                              <div className="text-[10px] text-stone-400 mt-1 truncate w-20 mx-auto" title={i18n.language === 'en' ? (db.characters[c.characterId]?.nameE || db.characters[c.characterId]?.name) : db.characters[c.characterId]?.name}>{i18n.language === 'en' ? (db.characters[c.characterId]?.nameE || db.characters[c.characterId]?.name) : db.characters[c.characterId]?.name}</div>
+                              <div className="text-[10px] text-stone-400 mt-1 truncate w-20 mx-auto flex items-center justify-center gap-1">
+                                <span className="truncate" title={i18n.language === 'en' ? (db.characters[c.characterId]?.nameE || db.characters[c.characterId]?.name) : db.characters[c.characterId]?.name}>
+                                  {i18n.language === 'en' ? (db.characters[c.characterId]?.nameE || db.characters[c.characterId]?.name) : db.characters[c.characterId]?.name}
+                                </span>
+                                {sortConfig.key === c.id && (
+                                  sortConfig.order === 'asc' ? <ArrowDownNarrowWide className="w-3 h-3 shrink-0" /> : <ArrowDownWideNarrow className="w-3 h-3 shrink-0" />
+                                )}
+                              </div>
                             </th>
                           ))}
                           <th className="p-3 font-semibold text-center sticky top-0 right-0 bg-stone-50 z-30 border-l border-b-2 border-stone-200 shadow-[-1px_0_0_0_#e7e5e4]">{t('common.edit')}</th>
@@ -322,9 +387,12 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
 
                               let levelColorClass = "bg-orange-400 text-white"; // default for +5
                               if (hasCostume) {
-                                if (record.level <= 0) levelColorClass = "bg-stone-200 text-stone-600";
-                                else if (record.level <= 2) levelColorClass = "bg-blue-400 text-white";
-                                else if (record.level <= 4) levelColorClass = "bg-purple-400 text-white";
+                                const level = Number(record.level);
+                                if (level <= 0) levelColorClass = "bg-stone-300 text-stone-700";
+                                else if (level === 1) levelColorClass = "bg-sky-300 text-sky-900";
+                                else if (level === 2) levelColorClass = "bg-sky-400 text-white";
+                                else if (level === 3) levelColorClass = "bg-fuchsia-400 text-white";
+                                else if (level === 4) levelColorClass = "bg-fuchsia-500 text-white";
                               }
 
                               return (
