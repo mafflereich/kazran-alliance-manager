@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../store';
-import { Shield, LogOut, Settings, Users, User, Lock, AlertCircle, X, Globe, Volume2, VolumeX, Sun, Moon, Monitor } from 'lucide-react';
+import { Shield, LogIn, LogOut, Settings, Users, User, Lock, AlertCircle, X, Globe, Volume2, VolumeX, Sun, Moon, Monitor } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../ThemeContext';
 
@@ -118,6 +118,24 @@ export default function Header() {
   const [isVolumeHovered, setIsVolumeHovered] = useState(false);
   const { preference, cycleTheme } = useTheme();
   const volumeHoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const volumeContainerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (volumeContainerRef.current && !volumeContainerRef.current.contains(event.target as Node)) {
+        setIsVolumeHovered(false);
+        if (volumeHoverTimeoutRef.current) {
+          clearTimeout(volumeHoverTimeoutRef.current);
+          volumeHoverTimeoutRef.current = null;
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleVolumeMouseEnter = () => {
     if (volumeHoverTimeoutRef.current) {
@@ -219,16 +237,12 @@ export default function Header() {
                 onClick={() => setIsLoginModalOpen(true)}
                 className="flex items-center gap-2 hover:text-amber-400 transition-colors"
               >
-                <User className="w-4 h-4" />
+                <LogIn className="w-4 h-4" />
                 <span className="hidden sm:inline">{t('header.login_btn')}</span>
               </button>
             )}
 
-            <div
-              className="flex items-center gap-4 border-l border-stone-800 pl-4"
-              onMouseEnter={handleVolumeMouseEnter}
-              onMouseLeave={handleVolumeMouseLeave}
-            >
+            <div className="flex items-center gap-4 border-l border-stone-800 pl-4">
               <button
                 onClick={cycleTheme}
                 className="flex items-center justify-center hover:text-amber-400 transition-colors p-1"
@@ -239,23 +253,29 @@ export default function Header() {
                 {preference === 'system' && <Monitor className="w-4 h-4" />}
               </button>
               <div className="relative">
-                <button
-                  onClick={() => hasBgm && toggleMute()}
-                  disabled={!hasBgm}
-                  className={`flex items-center justify-center transition-colors p-1 ${hasBgm ? 'hover:text-amber-400' : 'text-stone-600 cursor-not-allowed'}`}
-                  title={!hasBgm ? t('common.no_bgm', '無背景音樂') : isMuted ? t('common.unmute') : t('common.mute')}
+                <div
+                  ref={volumeContainerRef}
+                  className="relative"
+                  onMouseEnter={handleVolumeMouseEnter}
+                  onMouseLeave={handleVolumeMouseLeave}
                 >
-                  {isMuted || !hasBgm ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                </button>
-
+                  <button
+                    onClick={() => hasBgm && toggleMute()}
+                    disabled={!hasBgm}
+                    className={`flex items-center justify-center transition-colors p-1 ${hasBgm ? 'hover:text-amber-400' : 'text-stone-600 cursor-not-allowed'}`}
+                    title={!hasBgm ? t('common.no_bgm', '無背景音樂') : isMuted ? t('common.unmute') : t('common.mute')}
+                  >
+                    {isMuted || !hasBgm ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                  </button>
+                </div>
                 {isVolumeHovered && hasBgm && (
                   <div className="absolute top-full left-1/2 -translate-x-1/2 mt-4 bg-stone-800 p-3 rounded-lg shadow-xl z-[100] flex flex-col items-center gap-2 w-10 h-32 border border-stone-700">
                     <div className="h-24 flex items-center justify-center">
-                      <input 
-                        type="range" 
-                        min="0" 
-                        max="100" 
-                        value={currentVolume} 
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={currentVolume}
                         onChange={(e) => setUserVolume(Number(e.target.value))}
                         className="h-20 w-1 appearance-none bg-stone-600 rounded-lg accent-amber-500 cursor-pointer"
                         style={{ writingMode: 'vertical-lr', direction: 'rtl' }}
