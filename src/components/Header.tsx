@@ -243,31 +243,29 @@ export default function Header() {
             )}
 
             <div className="flex items-center gap-4 border-l border-stone-800 pl-4">
-              <button
-                onClick={cycleTheme}
-                className="flex items-center justify-center hover:text-amber-400 transition-colors p-1"
-                title={preference === 'system' ? 'System' : preference === 'light' ? 'Light' : 'Dark'}
-              >
-                {preference === 'light' && <Sun className="w-4 h-4" />}
-                {preference === 'dark' && <Moon className="w-4 h-4" />}
-                {preference === 'system' && <Monitor className="w-4 h-4" />}
-              </button>
               <div className="relative">
-                <div
-                  ref={volumeContainerRef}
-                  className="relative"
+                <button
+                  onClick={cycleTheme}
+                  className="flex items-center justify-center hover:text-amber-400 transition-colors p-1"
+                  title={preference === 'system' ? 'System' : preference === 'light' ? 'Light' : 'Dark'}
+                >
+                  {preference === 'light' && <Sun className="w-4 h-4" />}
+                  {preference === 'dark' && <Moon className="w-4 h-4" />}
+                  {preference === 'system' && <Monitor className="w-4 h-4" />}
+                </button>
+              </div>
+              <div className="relative" ref={volumeContainerRef}>
+                <button
                   onMouseEnter={handleVolumeMouseEnter}
                   onMouseLeave={handleVolumeMouseLeave}
+                  onClick={() => hasBgm && toggleMute()}
+                  disabled={!hasBgm}
+                  className={`flex items-center justify-center transition-colors p-1 ${hasBgm ? 'hover:text-amber-400' : 'text-stone-600 cursor-not-allowed'}`}
+                  title={!hasBgm ? t('common.no_bgm', '無背景音樂') : isMuted ? t('common.unmute') : t('common.mute')}
                 >
-                  <button
-                    onClick={() => hasBgm && toggleMute()}
-                    disabled={!hasBgm}
-                    className={`flex items-center justify-center transition-colors p-1 ${hasBgm ? 'hover:text-amber-400' : 'text-stone-600 cursor-not-allowed'}`}
-                    title={!hasBgm ? t('common.no_bgm', '無背景音樂') : isMuted ? t('common.unmute') : t('common.mute')}
-                  >
-                    {isMuted || !hasBgm ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                  </button>
-                </div>
+                  {isMuted || !hasBgm ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                </button>
+
                 {isVolumeHovered && hasBgm && (
                   <div className="absolute top-full left-1/2 -translate-x-1/2 mt-4 bg-stone-800 p-3 rounded-lg shadow-xl z-[100] flex flex-col items-center gap-2 w-10 h-32 border border-stone-700">
                     <div className="h-24 flex items-center justify-center">
