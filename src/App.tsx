@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import { ThemeProvider } from './ThemeContext';
 import { AppProvider, useAppContext } from './store';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
@@ -95,7 +96,7 @@ const AppContentWrapper = () => {
   }, [isMuted, audioSrc, EFFECTIVE_VOLUME]);
 
   return (
-    <div className="min-h-screen bg-stone-100 text-stone-900 font-sans">
+    <div className="min-h-screen bg-stone-100 dark:bg-stone-900 text-stone-900 dark:text-stone-100 font-sans">
       {audioSrc && (
         <audio
           ref={audioRef}
@@ -104,7 +105,7 @@ const AppContentWrapper = () => {
           autoPlay
         />
       )}
-      <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+      <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen text-stone-500 dark:text-stone-400">Loading...</div>}>
         <AppContent />
       </React.Suspense>
       <ToastContainer />
@@ -114,8 +115,10 @@ const AppContentWrapper = () => {
 
 export default function App() {
   return (
-    <AppProvider>
-      <AppContentWrapper />
-    </AppProvider>
+    <ThemeProvider>
+      <AppProvider>
+        <AppContentWrapper />
+      </AppProvider>
+    </ThemeProvider>
   );
 }

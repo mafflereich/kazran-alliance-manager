@@ -48,15 +48,15 @@ export default function MemberEditModal({ memberId, onClose }: { memberId: strin
   });
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-start justify-center p-4 bg-stone-900/60 backdrop-blur-sm pt-[80px]">
-      <div className="bg-stone-100 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[calc(100vh-120px)] flex flex-col overflow-hidden">
-        <div className="bg-white px-6 py-4 border-b border-stone-200 flex justify-between items-center sticky top-0 z-10">
+    <div className="fixed inset-0 z-[110] flex items-start justify-center p-4 bg-stone-900/60 dark:bg-black/70 backdrop-blur-sm pt-[80px]">
+      <div className="bg-stone-100 dark:bg-stone-900 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[calc(100vh-120px)] flex flex-col overflow-hidden">
+        <div className="bg-white dark:bg-stone-800 px-6 py-4 border-b border-stone-200 dark:border-stone-700 flex justify-between items-center sticky top-0 z-10">
           <div>
-            <h2 className="text-xl font-bold text-stone-800">{t('common.edit_member_title', { name: member.name })}</h2>
-            <p className="text-stone-500 text-sm">{t('common.edit_member_desc')}</p>
+            <h2 className="text-xl font-bold text-stone-800 dark:text-stone-200">{t('common.edit_member_title', { name: member.name })}</h2>
+            <p className="text-stone-500 dark:text-stone-400 text-sm">{t('common.edit_member_desc')}</p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-stone-100 rounded-full transition-colors">
-            <X className="w-6 h-6 text-stone-500" />
+          <button onClick={onClose} className="p-2 hover:bg-stone-100 dark:hover:bg-stone-700 rounded-full transition-colors">
+            <X className="w-6 h-6 text-stone-500 dark:text-stone-400" />
           </button>
         </div>
 
@@ -66,12 +66,12 @@ export default function MemberEditModal({ memberId, onClose }: { memberId: strin
 
             const characterCostumes = Object.values(db.costumes).filter(c => c.characterId === character.id).sort((a, b) => (a.orderNum ?? 999) - (b.orderNum ?? 999));
             return (
-              <div key={character.id} className={`bg-white rounded-xl shadow-sm border ${hasExclusiveWeapon ? 'border-orange-400' : 'border-stone-200'} overflow-hidden`}>
-                <div className="bg-stone-50 px-5 py-3 border-b border-stone-200 flex justify-between items-center">
-                  <h3 className="font-bold text-stone-800">{i18n.language === 'en' ? (character.nameE || character.name) : character.name}</h3>
-                  <label className="flex items-center gap-2 cursor-pointer group bg-stone-50 px-3 py-1.5 rounded-lg border border-stone-200 active:bg-stone-100 transition-colors shrink-0">
+              <div key={character.id} className={`bg-white dark:bg-stone-800 rounded-xl shadow-sm border ${hasExclusiveWeapon ? 'border-orange-400' : 'border-stone-200 dark:border-stone-700'} overflow-hidden`}>
+                <div className="bg-stone-50 dark:bg-stone-700 px-5 py-3 border-b border-stone-200 dark:border-stone-600 flex justify-between items-center">
+                  <h3 className="font-bold text-stone-800 dark:text-stone-200">{i18n.language === 'en' ? (character.nameE || character.name) : character.name}</h3>
+                  <label className="flex items-center gap-2 cursor-pointer group bg-stone-50 dark:bg-stone-700 px-3 py-1.5 rounded-lg border border-stone-200 dark:border-stone-600 active:bg-stone-100 transition-colors shrink-0">
                     <Swords className={`w-4 h-4 transition-colors ${hasExclusiveWeapon ? 'text-amber-600' : 'text-stone-400'}`} />
-                    <span className={`text-sm font-bold ${hasExclusiveWeapon ? 'text-amber-700' : 'text-stone-500'}`}>{t('common.ur_exclusive')}</span>
+                    <span className={`text-sm font-bold ${hasExclusiveWeapon ? 'text-amber-700' : 'text-stone-500 dark:text-stone-400'}`}>{t('common.ur_exclusive')}</span>
                     <div className="relative flex items-center">
                       <input
                         type="checkbox"
@@ -79,20 +79,20 @@ export default function MemberEditModal({ memberId, onClose }: { memberId: strin
                         checked={hasExclusiveWeapon}
                         onChange={(e) => setExclusiveWeapons({ ...exclusiveWeapons, [character.id]: e.target.checked })}
                       />
-                      <div className="w-10 h-6 bg-stone-200 rounded-full peer peer-checked:bg-amber-500 transition-colors shadow-inner"></div>
+                      <div className="w-10 h-6 bg-stone-200 dark:bg-stone-600 rounded-full peer peer-checked:bg-amber-500 transition-colors shadow-inner"></div>
                       <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-md"></div>
                     </div>
                   </label>
                 </div>
-                <div className="divide-y divide-stone-100">
+                <div className="divide-y divide-stone-100 dark:divide-stone-700">
                   {characterCostumes.map(costume => {
                     const record = records[costume.id] || { level: -1 };
 
                     return (
-                      <div key={costume.id} className="p-4 flex flex-col gap-3 hover:bg-stone-50/50 transition-colors">
+                      <div key={costume.id} className="p-4 flex flex-col gap-3 hover:bg-stone-50/50 dark:hover:bg-stone-700/50 transition-colors">
                         <div className="flex items-center gap-3">
                           {costume.imageName && (
-                            <div className="w-[40px] h-[40px] bg-stone-100 rounded-lg overflow-hidden border border-stone-200 flex-shrink-0">
+                            <div className="w-[40px] h-[40px] bg-stone-100 dark:bg-stone-700 rounded-lg overflow-hidden border border-stone-200 dark:border-stone-600 flex-shrink-0">
                               <img
                                 src={getImageUrl(costume.imageName)}
                                 alt={i18n.language === 'en' ? (costume.nameE || costume.name) : costume.name}
@@ -104,13 +104,13 @@ export default function MemberEditModal({ memberId, onClose }: { memberId: strin
                               />
                             </div>
                           )}
-                          <div className="font-medium text-stone-800">
+                          <div className="font-medium text-stone-800 dark:text-stone-200">
                             {i18n.language === 'en' ? (costume.nameE || costume.name) : costume.name}
                           </div>
                         </div>
                         <div className="flex items-center justify-between gap-4">
                           <div className="flex items-center gap-2 flex-1 flex-wrap">
-                            <label className="text-sm font-bold text-stone-500 whitespace-nowrap mr-2">{t('common.level')}</label>
+                            <label className="text-sm font-bold text-stone-500 dark:text-stone-400 whitespace-nowrap mr-2">{t('common.level')}</label>
                             <div className="flex flex-wrap gap-1">
                               {[
                                 { val: -1, label: t('common.not_owned') },
@@ -134,7 +134,7 @@ export default function MemberEditModal({ memberId, onClose }: { memberId: strin
                                     onClick={() => setRecords({ ...records, [costume.id]: { level: opt.val } })}
                                     className={`px-3 py-1.5 text-sm font-bold rounded-lg transition-all ${record.level == opt.val
                                       ? activeColorClass
-                                      : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                                      : 'bg-stone-100 text-stone-600 hover:bg-stone-200 dark:bg-stone-700 dark:text-stone-300 dark:hover:bg-stone-600'
                                       }`}
                                   >
                                     {opt.label}
@@ -154,10 +154,10 @@ export default function MemberEditModal({ memberId, onClose }: { memberId: strin
           }
         </div>
 
-        <div className="bg-white px-6 py-4 border-t border-stone-200 flex justify-end gap-3">
+        <div className="bg-white dark:bg-stone-800 px-6 py-4 border-t border-stone-200 dark:border-stone-700 flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="p-2 text-stone-500 hover:bg-stone-100 rounded-xl transition-colors"
+            className="p-2 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-700 rounded-xl transition-colors"
             title={t('common.cancel')}
           >
             <X className="w-6 h-6" />

@@ -86,14 +86,14 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
     return (
       <div className="h-screen flex flex-col">
         <Header />
-        <div className="flex-1 flex items-center justify-center bg-stone-100">
-          <div className="text-center p-8 bg-white rounded-2xl shadow-sm border border-stone-200 max-w-md">
+        <div className="flex-1 flex items-center justify-center bg-stone-100 dark:bg-stone-900">
+          <div className="text-center p-8 bg-white dark:bg-stone-800 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-700 max-w-md">
             <Shield className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-stone-800 mb-2">{t('errors.permission')}</h2>
-            <p className="text-stone-500 mb-6">{t('dashboard.no_permission')}</p>
+            <h2 className="text-xl font-bold text-stone-800 dark:text-stone-200 mb-2">{t('errors.permission')}</h2>
+            <p className="text-stone-500 dark:text-stone-400 mb-6">{t('dashboard.no_permission')}</p>
             <button
               onClick={() => userGuildId && setCurrentView({ type: 'guild', guildId: userGuildId })}
-              className="px-6 py-2 bg-stone-800 text-white rounded-lg hover:bg-stone-700 transition-colors"
+              className="px-6 py-2 bg-stone-800 dark:bg-stone-600 text-white rounded-lg hover:bg-stone-700 dark:hover:bg-stone-500 transition-colors"
             >
               {t('dashboard.return_to_guild')}
             </button>
@@ -221,7 +221,7 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
     });
 
   return (
-    <div className="h-screen bg-stone-100 flex flex-col overflow-hidden">
+    <div className="h-screen bg-stone-100 dark:bg-stone-900 flex flex-col overflow-hidden">
       <Header />
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar Overlay */}
@@ -282,24 +282,24 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
 
         {/* Main Content */}
         <div className="flex-1 min-w-0 flex flex-col h-full overflow-hidden">
-          <header className="bg-white px-4 py-2 shadow-sm flex items-center gap-4 shrink-0">
+          <header className="bg-white dark:bg-stone-800 px-4 py-2 shadow-sm flex items-center gap-4 shrink-0">
             <button
               onClick={() => setIsSidebarOpen(true)}
-              className="p-2 hover:bg-stone-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-stone-100 dark:hover:bg-stone-700 rounded-lg transition-colors"
             >
-              <Menu className="w-5 h-5 text-stone-600" />
+              <Menu className="w-5 h-5 text-stone-600 dark:text-stone-400" />
             </button>
             <div className="flex items-center gap-3">
               <div className="flex items-baseline gap-3">
-                <h1 className="font-bold text-lg text-stone-800">{guild.name}</h1>
-                <span className={`text-xs font-medium ${members.length > 30 ? 'text-red-500 bg-red-50 px-1.5 py-0.5 rounded' : 'text-stone-500'}`}>
+                <h1 className="font-bold text-lg text-stone-800 dark:text-stone-200">{guild.name}</h1>
+                <span className={`text-xs font-medium ${members.length > 30 ? 'text-red-500 bg-red-50 dark:bg-red-900/30 px-1.5 py-0.5 rounded' : 'text-stone-500 dark:text-stone-400'}`}>
                   {t('dashboard.member_count')}: {members.length} / 30
                 </span>
               </div>
               {canSeeAllGuilds && (
                 <button
                   onClick={() => setIsSearchModalOpen(true)}
-                  className="p-1.5 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-lg transition-colors"
+                  className="p-1.5 text-stone-400 hover:text-stone-600 hover:bg-stone-100 dark:text-stone-500 dark:hover:text-stone-300 dark:hover:bg-stone-700 rounded-lg transition-colors"
                   title={t('dashboard.global_search_member', '全域搜尋成員')}
                 >
                   <Search className="w-4 h-4" />
@@ -312,12 +312,12 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
             <div className="max-w-full mx-auto w-full h-full flex flex-col min-h-0">
               <div className="flex-1 flex flex-col min-h-0">
                 <div className="mb-2 shrink-0" />
-                <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden flex-1 flex flex-col min-h-0 relative">
+                <div className="bg-white dark:bg-stone-800 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-700 overflow-hidden flex-1 flex flex-col min-h-0 relative">
                   {isMembersLoading && (
-                    <div className="absolute inset-0 z-50 bg-white/50 backdrop-blur-sm flex items-center justify-center">
-                      <div className="flex flex-col items-center gap-3 bg-white p-6 rounded-2xl shadow-xl border border-stone-100">
-                        <div className="w-8 h-8 border-4 border-stone-200 border-t-stone-800 rounded-full animate-spin"></div>
-                        <span className="text-stone-600 font-medium">{t('common.loading', '載入中...')}</span>
+                    <div className="absolute inset-0 z-50 bg-white/50 dark:bg-stone-800/50 backdrop-blur-sm flex items-center justify-center">
+                      <div className="flex flex-col items-center gap-3 bg-white dark:bg-stone-700 p-6 rounded-2xl shadow-xl border border-stone-100 dark:border-stone-600">
+                        <div className="w-8 h-8 border-4 border-stone-200 dark:border-stone-600 border-t-stone-800 dark:border-t-stone-200 rounded-full animate-spin"></div>
+                        <span className="text-stone-600 dark:text-stone-400 font-medium">{t('common.loading', '載入中...')}</span>
                       </div>
                     </div>
                   )}
@@ -331,9 +331,9 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
                   >
                     <table className="w-full text-left border-collapse min-w-max">
                       <thead>
-                        <tr className="bg-stone-50 text-stone-600">
+                        <tr className="bg-stone-50 dark:bg-stone-700 text-stone-600 dark:text-stone-300">
                           <th
-                            className="p-3 font-semibold sticky top-0 left-0 bg-stone-50 z-30 border-r border-b-2 border-stone-200 shadow-[1px_0_0_0_#e7e5e4] cursor-pointer hover:bg-stone-100 transition-colors"
+                            className="p-3 font-semibold sticky top-0 left-0 bg-stone-50 dark:bg-stone-700 z-30 border-r border-b-2 border-stone-200 dark:border-stone-600 shadow-[1px_0_0_0_#e7e5e4] dark:shadow-[1px_0_0_0_#44403c] cursor-pointer hover:bg-stone-100 dark:hover:bg-stone-600 transition-colors"
                             onClick={() => handleSort('member')}
                           >
                             <div className="flex items-center gap-2">
@@ -346,11 +346,11 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
                           {costumes.map(c => (
                             <th
                               key={c.id}
-                              className="p-3 font-semibold text-center text-xs w-24 border-r border-b-2 border-stone-200 last:border-r-0 sticky top-0 bg-stone-50 z-20 cursor-pointer hover:bg-stone-100 transition-colors"
+                              className="p-3 font-semibold text-center text-xs w-24 border-r border-b-2 border-stone-200 dark:border-stone-600 last:border-r-0 sticky top-0 bg-stone-50 dark:bg-stone-700 z-20 cursor-pointer hover:bg-stone-100 dark:hover:bg-stone-600 transition-colors"
                               onClick={() => handleSort(c.id)}
                             >
                               {c.imageName && (
-                                <div className="w-[50px] h-[50px] mx-auto mb-2 bg-stone-100 rounded-lg overflow-hidden border border-stone-200">
+                                <div className="w-[50px] h-[50px] mx-auto mb-2 bg-stone-100 dark:bg-stone-700 rounded-lg overflow-hidden border border-stone-200 dark:border-stone-600">
                                   <img
                                     src={getImageUrl(c.imageName)}
                                     alt={i18n.language === 'en' ? (c.nameE || c.name) : c.name}
@@ -363,7 +363,7 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
                                 </div>
                               )}
                               <div className="truncate w-20 mx-auto" title={i18n.language === 'en' ? (c.nameE || c.name) : c.name}>{i18n.language === 'en' ? (c.nameE || c.name) : c.name}</div>
-                              <div className="text-[10px] text-stone-400 mt-1 truncate w-20 mx-auto flex items-center justify-center gap-1">
+                              <div className="text-[10px] text-stone-400 dark:text-stone-500 mt-1 truncate w-20 mx-auto flex items-center justify-center gap-1">
                                 <span className="truncate" title={i18n.language === 'en' ? (db.characters[c.characterId]?.nameE || db.characters[c.characterId]?.name) : db.characters[c.characterId]?.name}>
                                   {i18n.language === 'en' ? (db.characters[c.characterId]?.nameE || db.characters[c.characterId]?.name) : db.characters[c.characterId]?.name}
                                 </span>
@@ -373,18 +373,18 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
                               </div>
                             </th>
                           ))}
-                          <th className="p-3 font-semibold text-center sticky top-0 right-0 bg-stone-50 z-30 border-l border-b-2 border-stone-200 shadow-[-1px_0_0_0_#e7e5e4]">{t('common.edit')}</th>
+                          <th className="p-3 font-semibold text-center sticky top-0 right-0 bg-stone-50 dark:bg-stone-700 z-30 border-l border-b-2 border-stone-200 dark:border-stone-600 shadow-[-1px_0_0_0_#e7e5e4] dark:shadow-[-1px_0_0_0_#44403c]">{t('common.edit')}</th>
                         </tr>
                       </thead>
                       <tbody>
                         {members.map(([id, member]: [string, any]) => (
-                          <tr key={id} className="border-b border-stone-100 hover:bg-stone-50 transition-colors group">
-                            <td className="p-3 font-medium text-stone-800 sticky left-0 bg-white group-hover:bg-stone-50 border-r border-stone-200 shadow-[1px_0_0_0_#e7e5e4] transition-colors">
+                          <tr key={id} className="border-b border-stone-100 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors group">
+                            <td className="p-3 font-medium text-stone-800 dark:text-stone-200 sticky left-0 bg-white dark:bg-stone-800 group-hover:bg-stone-50 dark:group-hover:bg-stone-700 border-r border-stone-200 dark:border-stone-600 shadow-[1px_0_0_0_#e7e5e4] dark:shadow-[1px_0_0_0_#44403c] transition-colors">
                               <div className="flex flex-col">
                                 <div className="flex items-center gap-2">
                                   <span title={member.name}>{getTruncatedName(member.name, member.role)}</span>
                                   {(member.role === 'leader' || member.role === 'coleader') && (
-                                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${member.role === 'leader' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'}`}>
+                                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${member.role === 'leader' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'}`}>
                                       {member.role === 'leader' ? t('roles.leader') : t('roles.coleader')}
                                     </span>
                                   )}
@@ -417,14 +417,14 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
                               }
 
                               return (
-                                <td key={c.id} className={`p-0 text-center border-r border-stone-100 last:border-r-0 h-full ${hasCostume ? levelColorClass : ''}`}>
+                                <td key={c.id} className={`p-0 text-center border-r border-stone-100 dark:border-stone-700 last:border-r-0 h-full ${hasCostume ? levelColorClass : ''}`}>
                                   {hasCostume ? (
                                     <div className="flex flex-col items-center justify-center h-full min-h-[60px] py-2 gap-1">
                                       <span className="font-bold text-sm">+{record.level}</span>
                                       {hasExclusiveWeapon && <Swords className="w-4 h-4" />}
                                     </div>
                                   ) : (
-                                    <div className="flex flex-col items-center justify-center h-full min-h-[60px] py-2 gap-1 text-stone-300">
+                                    <div className="flex flex-col items-center justify-center h-full min-h-[60px] py-2 gap-1 text-stone-300 dark:text-stone-600">
                                       <span className="text-sm">-</span>
                                       {hasExclusiveWeapon && <Swords className="w-4 h-4 text-amber-500/50" />}
                                     </div>
@@ -432,10 +432,10 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
                                 </td>
                               );
                             })}
-                            <td className="p-3 text-center sticky right-0 bg-white group-hover:bg-stone-50 border-l border-stone-200 shadow-[-1px_0_0_0_#e7e5e4] transition-colors">
+                            <td className="p-3 text-center sticky right-0 bg-white dark:bg-stone-800 group-hover:bg-stone-50 dark:group-hover:bg-stone-700 border-l border-stone-200 dark:border-stone-600 shadow-[-1px_0_0_0_#e7e5e4] dark:shadow-[-1px_0_0_0_#44403c] transition-colors">
                               <button
                                 onClick={() => handleEditClick(id, member.name)}
-                                className="flex items-center justify-center p-2 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg transition-colors mx-auto"
+                                className="flex items-center justify-center p-2 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-900/50 rounded-lg transition-colors mx-auto"
                                 title={t('common.edit')}
                               >
                                 <Edit2 className="w-4 h-4" />
@@ -445,7 +445,7 @@ export default function GuildDashboard({ guildId }: { guildId: string }) {
                         ))}
                         {members.length === 0 && (
                           <tr>
-                            <td colSpan={costumes.length + 2} className="p-8 text-center text-stone-500">
+                            <td colSpan={costumes.length + 2} className="p-8 text-center text-stone-500 dark:text-stone-400">
                               {t('dashboard.no_members')}
                             </td>
                           </tr>

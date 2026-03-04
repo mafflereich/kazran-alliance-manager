@@ -80,25 +80,25 @@ export default function Login() {
   });
 
   return (
-    <div className="flex flex-col min-h-screen bg-stone-200">
+    <div className="flex flex-col min-h-screen bg-stone-200 dark:bg-stone-950">
       <Header />
       <div className="flex-1 flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-5xl transition-all duration-300">
-          <h1 className="text-3xl font-bold text-center mb-8 text-stone-800">{t('login.system_title')}</h1>
+        <div className="bg-white dark:bg-stone-800 p-8 rounded-2xl shadow-xl w-full max-w-5xl transition-all duration-300">
+          <h1 className="text-3xl font-bold text-center mb-8 text-stone-800 dark:text-stone-200">{t('login.system_title')}</h1>
 
           <div className="space-y-8">
-            <div className="p-6 border border-stone-200 rounded-xl bg-stone-50">
+            <div className="p-6 border border-stone-200 dark:border-stone-700 rounded-xl bg-stone-50 dark:bg-stone-700">
               <h2 className="text-lg font-semibold mb-6 flex items-center gap-2">
                 <Users className="w-5 h-5" /> {t('login.select_guild')}
               </h2>
 
               {isRoleLoading ? (
-                <div className="text-center text-stone-500 py-8 flex items-center justify-center gap-2">
-                  <div className="w-5 h-5 border-2 border-stone-500 border-t-transparent rounded-full animate-spin"></div>
+                <div className="text-center text-stone-500 dark:text-stone-400 py-8 flex items-center justify-center gap-2">
+                  <div className="w-5 h-5 border-2 border-stone-500 dark:border-stone-400 border-t-transparent rounded-full animate-spin"></div>
                   {t('common.loading', '載入中...')}
                 </div>
               ) : Object.keys(db.guilds).length === 0 ? (
-                <div className="text-center text-stone-500 py-8">
+                <div className="text-center text-stone-500 dark:text-stone-400 py-8">
                   {t('login.no_guilds')}
                 </div>
               ) : (
@@ -113,24 +113,24 @@ export default function Login() {
                           const isDisabled = currentUser && !canSeeAllGuilds && id !== userGuildId;
                           
                           // Determine classes based on state and tier
-                          let buttonClasses = "w-full flex items-center justify-between p-4 bg-white border rounded-xl transition-all group disabled:opacity-50";
+                          let buttonClasses = "w-full flex items-center justify-between p-4 bg-white dark:bg-stone-800 border rounded-xl transition-all group disabled:opacity-50";
                           let textClasses = "font-medium transition-colors";
                           let iconClasses = "w-5 h-5 transition-colors";
                           
                           if (isDisabled) {
-                            buttonClasses += " border-stone-200 opacity-30 grayscale cursor-not-allowed";
-                            textClasses += " text-stone-800";
-                            iconClasses += " text-stone-400";
+                            buttonClasses += " border-stone-200 dark:border-stone-700 opacity-30 grayscale cursor-not-allowed";
+                            textClasses += " text-stone-800 dark:text-stone-300";
+                            iconClasses += " text-stone-400 dark:text-stone-500";
                           } else {
                             // Enabled state - apply tier colors
                             buttonClasses += ` ${getTierBorderHoverClass(tier)}`;
                             
                             // Add specific background hover colors based on tier
-                            if (tier === 1) buttonClasses += " hover:bg-orange-50 border-orange-200";
-                            else if (tier === 2) buttonClasses += " hover:bg-blue-50 border-blue-200";
-                            else if (tier === 3) buttonClasses += " hover:bg-stone-50 border-stone-300";
-                            else if (tier === 4) buttonClasses += " hover:bg-green-50 border-green-200";
-                            else buttonClasses += " hover:bg-stone-50 border-stone-200";
+                            if (tier === 1) buttonClasses += " hover:bg-orange-50 border-orange-200 dark:hover:bg-orange-900/20 dark:border-orange-800";
+                            else if (tier === 2) buttonClasses += " hover:bg-blue-50 border-blue-200 dark:hover:bg-blue-900/20 dark:border-blue-800";
+                            else if (tier === 3) buttonClasses += " hover:bg-stone-50 border-stone-300 dark:hover:bg-stone-700 dark:border-stone-600";
+                            else if (tier === 4) buttonClasses += " hover:bg-green-50 border-green-200 dark:hover:bg-green-900/20 dark:border-green-800";
+                            else buttonClasses += " hover:bg-stone-50 border-stone-200 dark:hover:bg-stone-700 dark:border-stone-700";
                             
                             textClasses += ` ${getTierTextHoverClass(tier)}`;
                             iconClasses += ` ${getTierTextHoverClass(tier)}`;
@@ -160,26 +160,26 @@ export default function Login() {
       <Footer />
 
       {selectedGuildForLogin && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col overflow-hidden">
-            <div className="bg-stone-50 px-6 py-4 border-b border-stone-200 flex justify-between items-center">
-              <h2 className="text-xl font-bold flex items-center gap-2 text-stone-800">
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-stone-900/60 dark:bg-black/70 backdrop-blur-sm">
+          <div className="bg-white dark:bg-stone-800 rounded-2xl shadow-2xl w-full max-w-md flex flex-col overflow-hidden">
+            <div className="bg-stone-50 dark:bg-stone-700 px-6 py-4 border-b border-stone-200 dark:border-stone-600 flex justify-between items-center">
+              <h2 className="text-xl font-bold flex items-center gap-2 text-stone-800 dark:text-stone-200">
                 <Shield className="w-6 h-6 text-amber-600" /> {t('login.enter_guild', { guildName: selectedGuildForLogin.name })}
               </h2>
-              <button onClick={() => setSelectedGuildForLogin(null)} className="p-2 hover:bg-stone-200 rounded-full transition-colors">
-                <X className="w-5 h-5 text-stone-500" />
+              <button onClick={() => setSelectedGuildForLogin(null)} className="p-2 hover:bg-stone-200 dark:hover:bg-stone-600 rounded-full transition-colors">
+                <X className="w-5 h-5 text-stone-500 dark:text-stone-400" />
               </button>
             </div>
 
             <div className="p-6">
               <form onSubmit={handleGuildLogin} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-stone-600 mb-1">{t('login.guild_password')}</label>
+                  <label className="block text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">{t('login.guild_password')}</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400 dark:text-stone-500" />
                     <input
                       type="password"
-                      className="w-full pl-10 pr-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none bg-white"
+                      className="w-full pl-10 pr-4 py-2 border border-stone-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none bg-white dark:bg-stone-700 dark:text-stone-100"
                       value={guildPassword}
                       onChange={e => setGuildPassword(e.target.value)}
                       placeholder={t('login.enter_password')}
@@ -189,7 +189,7 @@ export default function Login() {
                 </div>
 
                 {error && (
-                  <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-2 rounded border border-red-100">
+                  <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/30 p-2 rounded border border-red-100 dark:border-red-800">
                     <AlertCircle className="w-4 h-4" />
                     {error}
                   </div>
@@ -199,7 +199,7 @@ export default function Login() {
                   <button
                     type="submit"
                     disabled={isVerifying}
-                    className="w-full py-2 bg-stone-800 text-white hover:bg-stone-700 rounded-lg font-medium transition-colors disabled:opacity-50"
+                    className="w-full py-2 bg-stone-800 dark:bg-stone-600 text-white hover:bg-stone-700 dark:hover:bg-stone-500 rounded-lg font-medium transition-colors disabled:opacity-50"
                   >
                     {isVerifying ? t('login.verifying') : t('login.enter')}
                   </button>

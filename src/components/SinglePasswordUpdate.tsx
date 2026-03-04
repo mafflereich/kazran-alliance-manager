@@ -122,19 +122,19 @@ console.log("Edge Function 詳細回傳內容：", data);
   };
 
   return (
-    <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200 max-w-md mx-auto">
+    <div className="bg-white dark:bg-stone-800 p-6 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-700 max-w-md mx-auto">
       <div className="flex items-center gap-2 mb-6">
         <Key className="w-6 h-6 text-amber-600" />
-        <h2 className="text-xl font-bold text-stone-800">{t('passwords.single_update')}</h2>
+        <h2 className="text-xl font-bold text-stone-800 dark:text-stone-200">{t('passwords.single_update')}</h2>
       </div>
 
       <form onSubmit={handleUpdatePassword} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-stone-600 mb-1">{t('passwords.select_user')}</label>
+          <label className="block text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">{t('passwords.select_user')}</label>
           <div className="relative">
-            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400 dark:text-stone-500" />
             <select
-              className="w-full pl-10 pr-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none bg-white appearance-none disabled:bg-stone-50"
+              className="w-full pl-10 pr-4 py-2 border border-stone-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none bg-white dark:bg-stone-700 dark:text-stone-100 appearance-none disabled:bg-stone-50 dark:disabled:bg-stone-800"
               value={selectedUsername}
               onChange={(e) => setSelectedUsername(e.target.value)}
               disabled={isFetching || isLoading}
@@ -152,10 +152,10 @@ console.log("Edge Function 詳細回傳內容：", data);
         {selectedUsername && (
           <>
             <div>
-              <label className="block text-sm font-medium text-stone-600 mb-1">{t('passwords.new_password')}</label>
+              <label className="block text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">{t('passwords.new_password')}</label>
               <input
                 type="password"
-                className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+                className="w-full px-4 py-2 border border-stone-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none dark:bg-stone-700 dark:text-stone-100"
                 placeholder={t('passwords.enter_new_password')}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
@@ -164,10 +164,10 @@ console.log("Edge Function 詳細回傳內容：", data);
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-stone-600 mb-1">{t('passwords.confirm_new_password')}</label>
+              <label className="block text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">{t('passwords.confirm_new_password')}</label>
               <input
                 type="password"
-                className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+                className="w-full px-4 py-2 border border-stone-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none dark:bg-stone-700 dark:text-stone-100"
                 placeholder={t('passwords.enter_new_password_again')}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -177,7 +177,7 @@ console.log("Edge Function 詳細回傳內容：", data);
 
             {status.message && (
               <div className={`p-3 rounded-lg flex items-center gap-2 text-sm ${
-                status.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-rose-50 text-rose-700 border border-rose-100'
+                status.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800' : 'bg-rose-50 text-rose-700 border border-rose-100 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-800'
               }`}>
                 {status.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
                 {status.message}
@@ -187,7 +187,7 @@ console.log("Edge Function 詳細回傳內容：", data);
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-2 bg-stone-800 text-white hover:bg-stone-700 rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full py-2 bg-stone-800 dark:bg-stone-600 text-white hover:bg-stone-700 dark:hover:bg-stone-500 rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <>

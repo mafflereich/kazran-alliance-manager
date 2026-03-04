@@ -7,27 +7,27 @@ import { ToastType } from '../types';
 const toastConfig: Record<ToastType, { icon: React.ReactNode; color: string; bg: string; border: string }> = {
   success: {
     icon: <CheckCircle className="w-5 h-5 text-emerald-500" />,
-    color: 'text-emerald-900',
-    bg: 'bg-emerald-50',
-    border: 'border-emerald-200'
+    color: 'text-emerald-900 dark:text-emerald-200',
+    bg: 'bg-emerald-50 dark:bg-emerald-900/30',
+    border: 'border-emerald-200 dark:border-emerald-800'
   },
   error: {
     icon: <AlertCircle className="w-5 h-5 text-red-500" />,
-    color: 'text-red-900',
-    bg: 'bg-red-50',
-    border: 'border-red-200'
+    color: 'text-red-900 dark:text-red-200',
+    bg: 'bg-red-50 dark:bg-red-900/30',
+    border: 'border-red-200 dark:border-red-800'
   },
   info: {
     icon: <Info className="w-5 h-5 text-blue-500" />,
-    color: 'text-blue-900',
-    bg: 'bg-blue-50',
-    border: 'border-blue-200'
+    color: 'text-blue-900 dark:text-blue-200',
+    bg: 'bg-blue-50 dark:bg-blue-900/30',
+    border: 'border-blue-200 dark:border-blue-800'
   },
   warning: {
     icon: <AlertTriangle className="w-5 h-5 text-amber-500" />,
-    color: 'text-amber-900',
-    bg: 'bg-amber-50',
-    border: 'border-amber-200'
+    color: 'text-amber-900 dark:text-amber-200',
+    bg: 'bg-amber-50 dark:bg-amber-900/30',
+    border: 'border-amber-200 dark:border-amber-800'
   }
 };
 
@@ -56,7 +56,7 @@ export default function ToastContainer() {
               <div className="text-sm font-medium leading-tight">{toast.message}</div>
               <button
                 onClick={() => removeToast(toast.id)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-black/5 rounded-full transition-colors"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-black/5 dark:hover:bg-white/10 rounded-full transition-colors"
               >
                 <X className="w-4 h-4 opacity-50" />
               </button>

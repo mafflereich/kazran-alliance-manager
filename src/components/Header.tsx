@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../store';
-import { Shield, LogOut, Settings, Users, LogIn, User, Lock, AlertCircle, X, Globe, Volume2, VolumeX } from 'lucide-react';
+import { Shield, LogIn, LogOut, Settings, Users, User, Lock, AlertCircle, X, Globe, Volume2, VolumeX, Sun, Moon, Monitor } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../ThemeContext';
 
 import { supabase } from '../supabase';
 
@@ -43,27 +44,27 @@ function LoginModal({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col overflow-hidden">
-        <div className="bg-stone-50 px-6 py-4 border-b border-stone-200 flex justify-between items-center">
-          <h2 className="text-xl font-bold flex items-center gap-2 text-stone-800">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-stone-900/60 dark:bg-black/70 backdrop-blur-sm">
+      <div className="bg-white dark:bg-stone-800 rounded-2xl shadow-2xl w-full max-w-md flex flex-col overflow-hidden">
+        <div className="bg-stone-50 dark:bg-stone-700 px-6 py-4 border-b border-stone-200 dark:border-stone-600 flex justify-between items-center">
+          <h2 className="text-xl font-bold flex items-center gap-2 text-stone-800 dark:text-stone-200">
             <Shield className="w-6 h-6 text-amber-600" /> {t('header.admin_login')}
           </h2>
-          <button onClick={onClose} className="p-2 hover:bg-stone-200 rounded-full transition-colors">
-            <X className="w-5 h-5 text-stone-500" />
+          <button onClick={onClose} className="p-2 hover:bg-stone-200 dark:hover:bg-stone-600 rounded-full transition-colors">
+            <X className="w-5 h-5 text-stone-500 dark:text-stone-400" />
           </button>
         </div>
 
         <div className="p-6">
           <form onSubmit={handleAdminLogin} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-stone-600 mb-1">{t('header.account')}</label>
+              <label className="block text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">{t('header.account')}</label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400 dark:text-stone-500" />
                 <input
                   type="text"
                   required
-                  className="w-full pl-10 pr-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none bg-white"
+                  className="w-full pl-10 pr-4 py-2 border border-stone-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none bg-white dark:bg-stone-700 dark:text-stone-100"
                   value={username}
                   onChange={e => setUsername(e.target.value)}
                   placeholder={t('header.enter_account')}
@@ -72,13 +73,13 @@ function LoginModal({ onClose }: { onClose: () => void }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-stone-600 mb-1">{t('header.password')}</label>
+              <label className="block text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">{t('header.password')}</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400 dark:text-stone-500" />
                 <input
                   type="password"
                   required
-                  className="w-full pl-10 pr-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none bg-white"
+                  className="w-full pl-10 pr-4 py-2 border border-stone-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none bg-white dark:bg-stone-700 dark:text-stone-100"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder={t('header.enter_password')}
@@ -87,7 +88,7 @@ function LoginModal({ onClose }: { onClose: () => void }) {
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-2 rounded border border-red-100">
+              <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/30 p-2 rounded border border-red-100 dark:border-red-800">
                 <AlertCircle className="w-4 h-4" />
                 {error}
               </div>
@@ -97,7 +98,7 @@ function LoginModal({ onClose }: { onClose: () => void }) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2 bg-stone-800 text-white hover:bg-stone-700 rounded-lg font-medium transition-colors disabled:opacity-50"
+                className="w-full py-2 bg-stone-800 dark:bg-stone-600 text-white hover:bg-stone-700 dark:hover:bg-stone-500 rounded-lg font-medium transition-colors disabled:opacity-50"
               >
                 {loading ? t('header.logging_in') : t('header.login')}
               </button>
@@ -115,6 +116,7 @@ export default function Header() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
   const [isVolumeHovered, setIsVolumeHovered] = useState(false);
+  const { preference, cycleTheme } = useTheme();
   const volumeHoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const volumeContainerRef = React.useRef<HTMLDivElement>(null);
 
@@ -241,29 +243,39 @@ export default function Header() {
             )}
 
             <div className="flex items-center gap-4 border-l border-stone-800 pl-4">
-              <div 
-                ref={volumeContainerRef}
-                className="relative"
-                onMouseEnter={handleVolumeMouseEnter}
-                onMouseLeave={handleVolumeMouseLeave}
+              <button
+                onClick={cycleTheme}
+                className="flex items-center justify-center hover:text-amber-400 transition-colors p-1"
+                title={preference === 'system' ? 'System' : preference === 'light' ? 'Light' : 'Dark'}
               >
-                <button
-                  onClick={() => hasBgm && toggleMute()}
-                  disabled={!hasBgm}
-                  className={`flex items-center justify-center transition-colors p-1 ${hasBgm ? 'hover:text-amber-400' : 'text-stone-600 cursor-not-allowed'}`}
-                  title={!hasBgm ? t('common.no_bgm', '無背景音樂') : isMuted ? t('common.unmute') : t('common.mute')}
+                {preference === 'light' && <Sun className="w-4 h-4" />}
+                {preference === 'dark' && <Moon className="w-4 h-4" />}
+                {preference === 'system' && <Monitor className="w-4 h-4" />}
+              </button>
+              <div className="relative">
+                <div
+                  ref={volumeContainerRef}
+                  className="relative"
+                  onMouseEnter={handleVolumeMouseEnter}
+                  onMouseLeave={handleVolumeMouseLeave}
                 >
-                  {isMuted || !hasBgm ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                </button>
-
+                  <button
+                    onClick={() => hasBgm && toggleMute()}
+                    disabled={!hasBgm}
+                    className={`flex items-center justify-center transition-colors p-1 ${hasBgm ? 'hover:text-amber-400' : 'text-stone-600 cursor-not-allowed'}`}
+                    title={!hasBgm ? t('common.no_bgm', '無背景音樂') : isMuted ? t('common.unmute') : t('common.mute')}
+                  >
+                    {isMuted || !hasBgm ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                  </button>
+                </div>
                 {isVolumeHovered && hasBgm && (
                   <div className="absolute top-full left-1/2 -translate-x-1/2 mt-4 bg-stone-800 p-3 rounded-lg shadow-xl z-[100] flex flex-col items-center gap-2 w-10 h-32 border border-stone-700">
                     <div className="h-24 flex items-center justify-center">
-                      <input 
-                        type="range" 
-                        min="0" 
-                        max="100" 
-                        value={currentVolume} 
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={currentVolume}
                         onChange={(e) => setUserVolume(Number(e.target.value))}
                         className="h-20 w-1 appearance-none bg-stone-600 rounded-lg accent-amber-500 cursor-pointer"
                         style={{ writingMode: 'vertical-lr', direction: 'rtl' }}

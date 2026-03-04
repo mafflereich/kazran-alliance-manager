@@ -149,24 +149,24 @@ complete: async (results) => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200 max-w-2xl mx-auto space-y-8">
-      <div className="flex items-center gap-2 border-b border-stone-100 pb-4">
+    <div className="bg-white dark:bg-stone-800 p-6 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-700 max-w-2xl mx-auto space-y-8">
+      <div className="flex items-center gap-2 border-b border-stone-100 dark:border-stone-700 pb-4">
         <FileUp className="w-6 h-6 text-amber-600" />
-        <h2 className="text-xl font-bold text-stone-800">{t('passwords.bulk_update')} (CSV)</h2>
+        <h2 className="text-xl font-bold text-stone-800 dark:text-stone-200">{t('passwords.bulk_update')} (CSV)</h2>
       </div>
 
       {/* Step 1: Export */}
       <div className="space-y-3">
-        <h3 className="text-lg font-semibold text-stone-700 flex items-center gap-2">
+        <h3 className="text-lg font-semibold text-stone-700 dark:text-stone-300 flex items-center gap-2">
           <span className="flex items-center justify-center w-6 h-6 rounded-full bg-stone-800 text-white text-xs">1</span>
           {t('passwords.download_list')}
         </h3>
-        <p className="text-sm text-stone-500" dangerouslySetInnerHTML={{ __html: t('passwords.download_list_desc') }}>
+        <p className="text-sm text-stone-500 dark:text-stone-400" dangerouslySetInnerHTML={{ __html: t('passwords.download_list_desc') }}>
         </p>
         <button
           onClick={handleExportCSV}
           disabled={isExporting}
-          className="flex items-center gap-2 px-6 py-2.5 bg-stone-100 text-stone-700 hover:bg-stone-200 rounded-xl font-medium transition-all disabled:opacity-50"
+          className="flex items-center gap-2 px-6 py-2.5 bg-stone-100 text-stone-700 hover:bg-stone-200 dark:bg-stone-700 dark:text-stone-300 dark:hover:bg-stone-600 rounded-xl font-medium transition-all disabled:opacity-50"
         >
           {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
           {t('passwords.download_csv')}
@@ -174,12 +174,12 @@ complete: async (results) => {
       </div>
 
       {/* Step 2: Import */}
-      <div className="space-y-4 pt-4 border-t border-stone-100">
-        <h3 className="text-lg font-semibold text-stone-700 flex items-center gap-2">
+      <div className="space-y-4 pt-4 border-t border-stone-100 dark:border-stone-700">
+        <h3 className="text-lg font-semibold text-stone-700 dark:text-stone-300 flex items-center gap-2">
           <span className="flex items-center justify-center w-6 h-6 rounded-full bg-stone-800 text-white text-xs">2</span>
           {t('passwords.upload_and_update')}
         </h3>
-        <p className="text-sm text-stone-500">
+        <p className="text-sm text-stone-500 dark:text-stone-400">
           {t('passwords.upload_and_update_desc')}
         </p>
         
@@ -188,7 +188,7 @@ complete: async (results) => {
             type="file"
             accept=".csv"
             ref={fileInputRef}
-            className="flex-1 text-sm text-stone-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-stone-800 file:text-white hover:file:bg-stone-700 cursor-pointer"
+            className="flex-1 text-sm text-stone-500 dark:text-stone-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-stone-800 file:text-white hover:file:bg-stone-700 cursor-pointer"
           />
           <button
             onClick={handleImportCSV}
@@ -211,16 +211,16 @@ complete: async (results) => {
 
         {status.message && (
           <div className={`p-4 rounded-xl flex items-center gap-3 text-sm border ${
-            status.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-100'
+            status.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800' : 'bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-800'
           }`}>
             {status.type === 'success' ? <CheckCircle2 className="w-5 h-5 shrink-0" /> : <AlertCircle className="w-5 h-5 shrink-0" />}
             {status.message}
           </div>
         )}
 
-        <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 flex gap-3">
+        <div className="bg-amber-50 dark:bg-amber-900/30 p-4 rounded-xl border border-amber-100 dark:border-amber-800 flex gap-3">
           <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
-          <div className="text-xs text-amber-800 space-y-1">
+          <div className="text-xs text-amber-800 dark:text-amber-200 space-y-1">
             <p className="font-bold">{t('passwords.notes')}</p>
             <ul className="list-disc list-inside space-y-0.5">
               <li dangerouslySetInnerHTML={{ __html: t('passwords.note_1') }}></li>

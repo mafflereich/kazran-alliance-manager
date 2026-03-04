@@ -26,18 +26,18 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-100 flex flex-col">
+    <div className="min-h-screen bg-stone-100 dark:bg-stone-900 flex flex-col">
       <Header />
 
       <main className="max-w-6xl mx-auto p-6 flex-1 w-full">
-        <div className="mb-4 flex gap-4 text-[10px] text-stone-400 uppercase tracking-widest">
+        <div className="mb-4 flex gap-4 text-[10px] text-stone-400 dark:text-stone-500 uppercase tracking-widest">
           <span>{t('common.guild')}: {Object.keys(db.guilds).length}</span>
           <span>{t('common.member')}: {Object.values(db.members).filter(m => m.status === 'active').length}</span>
           <span>{t('common.character')}: {Object.keys(db.characters).length}</span>
           <span>{t('common.costume')}: {Object.keys(db.costumes).length}</span>
           <span>{t('common.user')}: {Object.keys(db.users).length}</span>
         </div>
-        <div className="flex gap-4 mb-6 border-b border-stone-300 pb-2 overflow-x-auto">
+        <div className="flex gap-4 mb-6 border-b border-stone-300 dark:border-stone-700 pb-2 overflow-x-auto">
           <TabButton active={activeTab === 'guilds'} onClick={() => setActiveTab('guilds')} icon={<Shield />} label={t('nav.guild_management')} />
           <TabButton active={activeTab === 'costumes'} onClick={() => setActiveTab('costumes')} icon={<Sword />} label={t('nav.costume_database')} />
           <TabButton active={activeTab === 'archived'} onClick={() => setActiveTab('archived')} icon={<Archive />} label={t('nav.archived_members')} />
@@ -51,19 +51,19 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
+        <div className="bg-white dark:bg-stone-800 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-700 p-6">
           {activeTab === 'guilds' && <GuildsManager />}
           {activeTab === 'costumes' && <CostumesManager />}
           {activeTab === 'archived' && <ArchivedMembersManager />}
           {activeTab === 'passwords' && userRole !== 'manager' && (
             <div className="space-y-12">
-              <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg">
+              <div className="bg-amber-50 dark:bg-amber-900/30 border-l-4 border-amber-400 dark:border-amber-600 p-4 rounded-r-lg">
                 <div className="flex">
                   <div className="py-1"><AlertCircle className="h-5 w-5 text-amber-500 mr-3" /></div>
                   <div>
-                    <p className="font-bold text-amber-800">{t('common.info')}</p>
-                    <p className="text-sm text-amber-700">
-                      {t('guilds.auth_account_notice')} <code className="bg-amber-100 px-1 rounded">"new_guild_name@kazran.com"</code>。
+                    <p className="font-bold text-amber-800 dark:text-amber-200">{t('common.info')}</p>
+                    <p className="text-sm text-amber-700 dark:text-amber-300">
+                      {t('guilds.auth_account_notice')} <code className="bg-amber-100 dark:bg-amber-900/50 px-1 rounded">"new_guild_name@kazran.com"</code>。
                     </p>
                   </div>
                 </div>
@@ -71,17 +71,17 @@ export default function AdminDashboard() {
 
               <section>
                 <div className="mb-6">
-                  <h3 className="text-lg font-bold text-stone-800">{t('passwords.single_update')}</h3>
-                  <p className="text-sm text-stone-500">{t('passwords.single_update_desc')}</p>
+                  <h3 className="text-lg font-bold text-stone-800 dark:text-stone-200">{t('passwords.single_update')}</h3>
+                  <p className="text-sm text-stone-500 dark:text-stone-400">{t('passwords.single_update_desc')}</p>
                 </div>
                 <SinglePasswordUpdate />
               </section>
 
-              <div className="border-t border-stone-100 pt-12">
+              <div className="border-t border-stone-100 dark:border-stone-700 pt-12">
                 <section>
                   <div className="mb-6">
-                    <h3 className="text-lg font-bold text-stone-800">{t('passwords.bulk_update')}</h3>
-                    <p className="text-sm text-stone-500">{t('passwords.bulk_update_desc')}</p>
+                    <h3 className="text-lg font-bold text-stone-800 dark:text-stone-200">{t('passwords.bulk_update')}</h3>
+                    <p className="text-sm text-stone-500 dark:text-stone-400">{t('passwords.bulk_update_desc')}</p>
                   </div>
                   <BulkPasswordUpdate />
                 </section>
@@ -255,18 +255,18 @@ function ToolsManager() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold mb-6 text-stone-800 flex items-center gap-2">
+      <h2 className="text-2xl font-bold mb-6 text-stone-800 dark:text-stone-200 flex items-center gap-2">
         <Wand2 className="w-6 h-6 text-amber-600" />
         {t('nav.tools')}
       </h2>
 
       <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-stone-50 p-8 rounded-2xl border border-stone-200 flex flex-col items-center justify-center text-center">
-          <div className="p-4 bg-amber-100 rounded-full text-amber-600 mb-4">
+        <div className="bg-stone-50 dark:bg-stone-700 p-8 rounded-2xl border border-stone-200 dark:border-stone-600 flex flex-col items-center justify-center text-center">
+          <div className="p-4 bg-amber-100 dark:bg-amber-900/50 rounded-full text-amber-600 mb-4">
             <RefreshCw className="w-8 h-8" />
           </div>
-          <h3 className="text-xl font-bold text-stone-800 mb-2">{t('tools.auto_transfer')}</h3>
-          <p className="text-stone-500 mb-6 max-w-md">
+          <h3 className="text-xl font-bold text-stone-800 dark:text-stone-200 mb-2">{t('tools.auto_transfer')}</h3>
+          <p className="text-stone-500 dark:text-stone-400 mb-6 max-w-md">
             {t('tools.auto_transfer_desc')}
           </p>
           <button
@@ -278,12 +278,12 @@ function ToolsManager() {
           </button>
         </div>
 
-        <div className="bg-stone-50 p-8 rounded-2xl border border-stone-200 flex flex-col items-center justify-center text-center">
-          <div className="p-4 bg-red-100 rounded-full text-red-600 mb-4">
+        <div className="bg-stone-50 dark:bg-stone-700 p-8 rounded-2xl border border-stone-200 dark:border-stone-600 flex flex-col items-center justify-center text-center">
+          <div className="p-4 bg-red-100 dark:bg-red-900/50 rounded-full text-red-600 mb-4">
             <Trash2 className="w-8 h-8" />
           </div>
-          <h3 className="text-xl font-bold text-stone-800 mb-2">{t('tools.remove_duplicates')}</h3>
-          <p className="text-stone-500 mb-6 max-w-md">
+          <h3 className="text-xl font-bold text-stone-800 dark:text-stone-200 mb-2">{t('tools.remove_duplicates')}</h3>
+          <p className="text-stone-500 dark:text-stone-400 mb-6 max-w-md">
             {t('tools.remove_duplicates_desc')}
           </p>
           <button
@@ -313,7 +313,7 @@ function TabButton({ active, onClick, icon, label }: { active: boolean, onClick:
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-medium transition-colors ${active ? 'text-amber-600 border-b-2 border-amber-600' : 'text-stone-500 hover:text-stone-800'
+      className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-medium transition-colors ${active ? 'text-amber-600 border-b-2 border-amber-600' : 'text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200'
         }`}
     >
       {React.cloneElement(icon as React.ReactElement<{ className?: string }>, { className: 'w-5 h-5' })}
@@ -439,10 +439,10 @@ function GuildsManager() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-stone-800">{t('nav.guild_management')}</h2>
+        <h2 className="text-2xl font-bold text-stone-800 dark:text-stone-200">{t('nav.guild_management')}</h2>
         <button
           onClick={() => fetchAllMembers()}
-          className="p-2 text-stone-500 hover:bg-stone-200 rounded-full transition-colors"
+          className="p-2 text-stone-500 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-600 rounded-full transition-colors"
           title={t('common.reset')}
         >
           <RefreshCw className="w-5 h-5" />
@@ -453,7 +453,7 @@ function GuildsManager() {
         <input
           type="text"
           placeholder={t('guilds.guild_name')}
-          className="flex-1 p-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+          className="flex-1 p-2 border border-stone-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none dark:bg-stone-700 dark:text-stone-100"
           value={newGuildName}
           onChange={e => setNewGuildName(e.target.value)}
         />
@@ -473,13 +473,13 @@ function GuildsManager() {
                 <div
                   key={id}
                   onClick={() => { if (!editingGuildId) setSelectedGuildId(id); }}
-                  className={`p-4 border border-stone-200 rounded-xl bg-stone-50 flex flex-col gap-3 transition-colors group ${!editingGuildId ? `cursor-pointer ${getTierBorderHoverClass(tier)}` : ''}`}
+                  className={`p-4 border border-stone-200 dark:border-stone-700 rounded-xl bg-stone-50 dark:bg-stone-700 flex flex-col gap-3 transition-colors group ${!editingGuildId ? `cursor-pointer ${getTierBorderHoverClass(tier)}` : ''}`}
                 >
                   {editingGuildId === id ? (
                     <div className="flex flex-col gap-2">
                       <input
                         type="text"
-                        className="w-full p-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+                        className="w-full p-2 border border-stone-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none dark:bg-stone-700 dark:text-stone-100"
                         value={editGuildName}
                         onChange={e => setEditGuildName(e.target.value)}
                         onClick={e => e.stopPropagation()}
@@ -488,7 +488,7 @@ function GuildsManager() {
                       />
                       <div className="flex gap-2">
                         <select
-                          className="flex-1 p-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+                          className="flex-1 p-2 border border-stone-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none dark:bg-stone-700 dark:text-stone-100"
                           value={editGuildTier}
                           onChange={e => setEditGuildTier(Number(e.target.value))}
                           onClick={e => e.stopPropagation()}
@@ -500,7 +500,7 @@ function GuildsManager() {
                         </select>
                         <input
                           type="number"
-                          className="w-20 p-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+                          className="w-20 p-2 border border-stone-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none dark:bg-stone-700 dark:text-stone-100"
                           value={editGuildOrder}
                           onChange={e => setEditGuildOrder(Number(e.target.value))}
                           onClick={e => e.stopPropagation()}
@@ -510,24 +510,24 @@ function GuildsManager() {
                       </div>
                       <div className="flex gap-2">
                         <button onClick={saveEdit} className="flex-1 p-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-1"><Save className="w-4 h-4" /> {t('common.save')}</button>
-                        <button onClick={(e) => { e.stopPropagation(); setEditingGuildId(null); }} className="flex-1 p-2 bg-stone-200 text-stone-600 rounded-lg hover:bg-stone-300 transition-colors flex items-center justify-center gap-1"><X className="w-4 h-4" /> {t('common.cancel')}</button>
+                        <button onClick={(e) => { e.stopPropagation(); setEditingGuildId(null); }} className="flex-1 p-2 bg-stone-200 dark:bg-stone-600 text-stone-600 dark:text-stone-200 rounded-lg hover:bg-stone-300 dark:hover:bg-stone-500 transition-colors flex items-center justify-center gap-1"><X className="w-4 h-4" /> {t('common.cancel')}</button>
                       </div>
                     </div>
                   ) : (
                     <div className="flex justify-between items-start">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="px-2 py-0.5 bg-stone-200 text-stone-600 text-xs font-bold rounded">{t('common.order')} {guild.orderNum || 1}</span>
+                          <span className="px-2 py-0.5 bg-stone-200 dark:bg-stone-600 text-stone-600 dark:text-stone-300 text-xs font-bold rounded">{t('common.order')} {guild.orderNum || 1}</span>
                         </div>
-                        <h3 className="font-bold text-lg text-stone-800 group-hover:text-amber-700 transition-colors">{guild.name}</h3>
-                        <p className={`text-sm font-medium ${getMemberCount(id) > 30 ? 'text-red-500 bg-red-50 px-1 py-0.5 rounded inline-block' : 'text-stone-500'}`}>
+                        <h3 className="font-bold text-lg text-stone-800 dark:text-stone-200 group-hover:text-amber-700 transition-colors">{guild.name}</h3>
+                        <p className={`text-sm font-medium ${getMemberCount(id) > 30 ? 'text-red-500 bg-red-50 dark:bg-red-900/30 px-1 py-0.5 rounded inline-block' : 'text-stone-500 dark:text-stone-400'}`}>
                           {t('guilds.member_count')}: {getMemberCount(id)} / 30
                         </p>
                       </div>
                       <div className="flex items-center gap-1">
-                        <button onClick={(e) => startEdit(e, id, guild)} className="p-2 text-stone-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors" title={t('common.edit')}><Edit2 className="w-5 h-5" /></button>
-                        <button onClick={(e) => handleDelete(e, id)} className="p-2 text-stone-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title={t('common.delete')}><Trash2 className="w-5 h-5" /></button>
-                        <Users className="w-5 h-5 ml-1 text-stone-400 group-hover:text-amber-500 transition-colors" />
+                        <button onClick={(e) => startEdit(e, id, guild)} className="p-2 text-stone-500 dark:text-stone-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-lg transition-colors" title={t('common.edit')}><Edit2 className="w-5 h-5" /></button>
+                        <button onClick={(e) => handleDelete(e, id)} className="p-2 text-stone-500 dark:text-stone-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors" title={t('common.delete')}><Trash2 className="w-5 h-5" /></button>
+                        <Users className="w-5 h-5 ml-1 text-stone-400 dark:text-stone-500 group-hover:text-amber-500 transition-colors" />
                       </div>
                     </div>
                   )}
@@ -772,12 +772,12 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
   return (
     <div>
       <div className="flex items-center gap-4 mb-6">
-        <button onClick={onBack} className="p-2 hover:bg-stone-100 rounded-lg transition-colors">
-          <ChevronLeft className="w-6 h-6 text-stone-600" />
+        <button onClick={onBack} className="p-2 hover:bg-stone-100 dark:hover:bg-stone-700 rounded-lg transition-colors">
+          <ChevronLeft className="w-6 h-6 text-stone-600 dark:text-stone-400" />
         </button>
         <div className="flex-1">
-          <h2 className="text-2xl font-bold text-stone-800">{guild.name} - {t('nav.guild_management')}</h2>
-          <p className={`text-sm font-medium ${members.length > 30 ? 'text-red-500 bg-red-50 px-2 py-0.5 rounded inline-block' : 'text-stone-500'}`}>
+          <h2 className="text-2xl font-bold text-stone-800 dark:text-stone-200">{guild.name} - {t('nav.guild_management')}</h2>
+          <p className={`text-sm font-medium ${members.length > 30 ? 'text-red-500 bg-red-50 dark:bg-red-900/30 px-2 py-0.5 rounded inline-block' : 'text-stone-500 dark:text-stone-400'}`}>
             {t('guilds.member_count')}: {members.length} / 30
           </p>
         </div>
@@ -786,7 +786,7 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
             <button onClick={() => setIsAdding(true)} className="px-4 py-2 bg-stone-800 text-white rounded-lg hover:bg-stone-700 flex items-center gap-2">
               <Plus className="w-5 h-5" /> {t('members.add_member')}
             </button>
-            <button onClick={() => setIsBatchAdding(true)} className="px-4 py-2 bg-stone-200 text-stone-800 rounded-lg hover:bg-stone-300 flex items-center gap-2">
+            <button onClick={() => setIsBatchAdding(true)} className="px-4 py-2 bg-stone-200 dark:bg-stone-600 text-stone-800 dark:text-stone-200 rounded-lg hover:bg-stone-300 dark:hover:bg-stone-500 flex items-center gap-2">
               {t('members.batch_add')}
             </button>
           </div>
@@ -794,10 +794,10 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
       </div>
 
       {isBatchAdding && (
-        <div className="bg-stone-50 p-4 rounded-xl border border-stone-200 mb-6 flex flex-col gap-4">
-          <label className="block text-sm font-medium text-stone-600 whitespace-pre-line">{t('members.batch_add_placeholder')}</label>
+        <div className="bg-stone-50 dark:bg-stone-700 p-4 rounded-xl border border-stone-200 dark:border-stone-600 mb-6 flex flex-col gap-4">
+          <label className="block text-sm font-medium text-stone-600 dark:text-stone-400 whitespace-pre-line">{t('members.batch_add_placeholder')}</label>
           <textarea
-            className="w-full p-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none min-h-[100px]"
+            className="w-full p-2 border border-stone-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none min-h-[100px] dark:bg-stone-700 dark:text-stone-100"
             placeholder="Player1, Master, Note1&#10;Player2, Member&#10;Player3"
             value={batchInput}
             onChange={e => setBatchInput(e.target.value)}
@@ -806,26 +806,26 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
             <button onClick={handleBatchAdd} disabled={isSaving} className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50">
               {isSaving ? t('common.loading') : t('common.confirm')}
             </button>
-            <button onClick={() => { setIsBatchAdding(false); setBatchInput(''); }} className="px-4 py-2 bg-stone-300 text-stone-800 rounded-lg hover:bg-stone-400">{t('common.cancel')}</button>
+            <button onClick={() => { setIsBatchAdding(false); setBatchInput(''); }} className="px-4 py-2 bg-stone-300 dark:bg-stone-600 text-stone-800 dark:text-stone-200 rounded-lg hover:bg-stone-400 dark:hover:bg-stone-500">{t('common.cancel')}</button>
           </div>
         </div>
       )}
 
       {isAdding && (
-        <div className="bg-stone-50 p-4 rounded-xl border border-stone-200 mb-6 flex gap-4 items-end flex-wrap">
+        <div className="bg-stone-50 dark:bg-stone-700 p-4 rounded-xl border border-stone-200 dark:border-stone-600 mb-6 flex gap-4 items-end flex-wrap">
           <div className="flex-1 min-w-[150px]">
-            <label className="block text-sm font-medium text-stone-600 mb-1">{t('common.name')}</label>
+            <label className="block text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">{t('common.name')}</label>
             <input
               type="text"
-              className="w-full p-2 border border-stone-300 rounded-lg"
+              className="w-full p-2 border border-stone-300 dark:border-stone-600 rounded-lg dark:bg-stone-700 dark:text-stone-100"
               value={formData.name}
               onChange={e => setFormData({ ...formData, name: e.target.value })}
             />
           </div>
           <div className="flex-1 min-w-[150px]">
-            <label className="block text-sm font-medium text-stone-600 mb-1">{t('common.role')}</label>
+            <label className="block text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">{t('common.role')}</label>
             <select
-              className="w-full p-2 border border-stone-300 rounded-lg"
+              className="w-full p-2 border border-stone-300 dark:border-stone-600 rounded-lg dark:bg-stone-700 dark:text-stone-100"
               value={formData.role}
               onChange={e => setFormData({ ...formData, role: e.target.value as Role })}
             >
@@ -835,16 +835,16 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
             </select>
           </div>
           <div className="flex-1 min-w-[150px]">
-            <label className="block text-sm font-medium text-stone-600 mb-1">{t('members.target_guild')}</label>
-            <div className="w-full p-2 border border-stone-200 rounded-lg bg-stone-100 text-stone-500">
+            <label className="block text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">{t('members.target_guild')}</label>
+            <div className="w-full p-2 border border-stone-200 dark:border-stone-600 rounded-lg bg-stone-100 dark:bg-stone-600 text-stone-500 dark:text-stone-400">
               {db.guilds[guildId]?.name || t('common.unknown')}
             </div>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-stone-600 mb-1">{t('common.note')}</label>
+            <label className="block text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">{t('common.note')}</label>
             <input
               type="text"
-              className="w-full p-2 border border-stone-300 rounded-lg"
+              className="w-full p-2 border border-stone-300 dark:border-stone-600 rounded-lg dark:bg-stone-700 dark:text-stone-100"
               value={formData.note}
               onChange={e => setFormData({ ...formData, note: e.target.value })}
               placeholder={t('common.note')}
@@ -854,7 +854,7 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
             <button onClick={handleSave} disabled={isSaving} className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50">
               {isSaving ? t('common.loading') : t('common.save')}
             </button>
-            <button onClick={cancelEdit} className="px-4 py-2 bg-stone-300 text-stone-800 rounded-lg hover:bg-stone-400">{t('common.cancel')}</button>
+            <button onClick={cancelEdit} className="px-4 py-2 bg-stone-300 dark:bg-stone-600 text-stone-800 dark:text-stone-200 rounded-lg hover:bg-stone-400 dark:hover:bg-stone-500">{t('common.cancel')}</button>
           </div>
         </div>
       )}
@@ -862,7 +862,7 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b-2 border-stone-200 text-stone-600">
+            <tr className="border-b-2 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-400">
               <th className="p-3 font-semibold">{t('common.name')}</th>
               <th className="p-3 font-semibold">{t('common.role')}</th>
               <th className="p-3 font-semibold">{t('common.note')}</th>
@@ -875,11 +875,11 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
               const isEditing = editingId === id;
               if (isEditing) {
                 return (
-                  <tr key={id} className="bg-amber-50/50 border-b border-stone-100">
+                  <tr key={id} className="bg-amber-50/50 dark:bg-amber-900/20 border-b border-stone-100 dark:border-stone-700">
                     <td className="p-2">
                       <input
                         type="text"
-                        className="w-full p-1.5 border border-stone-300 rounded bg-white text-sm"
+                        className="w-full p-1.5 border border-stone-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 dark:text-stone-100 text-sm"
                         value={formData.name}
                         onChange={e => setFormData({ ...formData, name: e.target.value })}
                         autoFocus
@@ -887,7 +887,7 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
                     </td>
                     <td className="p-2">
                       <select
-                        className="w-full p-1.5 border border-stone-300 rounded bg-white text-sm"
+                        className="w-full p-1.5 border border-stone-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 dark:text-stone-100 text-sm"
                         value={formData.role}
                         onChange={e => setFormData({ ...formData, role: e.target.value as Role })}
                       >
@@ -899,7 +899,7 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
                     <td className="p-2">
                       <div className="flex flex-col gap-1">
                         <select
-                          className="w-full p-1.5 border border-stone-300 rounded bg-white text-xs mb-1"
+                          className="w-full p-1.5 border border-stone-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 dark:text-stone-100 text-xs mb-1"
                           value={formData.targetGuildId}
                           onChange={(e) => setFormData({ ...formData, targetGuildId: e.target.value })}
                         >
@@ -909,7 +909,7 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
                         </select>
                         <input
                           type="text"
-                          className="w-full p-1.5 border border-stone-300 rounded bg-white text-sm"
+                          className="w-full p-1.5 border border-stone-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 dark:text-stone-100 text-sm"
                           value={formData.note}
                           onChange={e => setFormData({ ...formData, note: e.target.value })}
                           placeholder={t('common.note')}
@@ -927,7 +927,7 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
                         </button>
                         <button
                           onClick={cancelEdit}
-                          className="p-2 text-stone-400 hover:bg-stone-100 rounded-lg transition-colors"
+                          className="p-2 text-stone-400 dark:text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-700 rounded-lg transition-colors"
                           title={t('common.cancel')}
                         >
                           <X className="w-4 h-4" />
@@ -939,37 +939,37 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
               }
 
               return (
-                <tr key={id} className="border-b border-stone-100 hover:bg-stone-50">
-                  <td className="p-3 font-medium text-stone-800">{member.name}</td>
+                <tr key={id} className="border-b border-stone-100 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700">
+                  <td className="p-3 font-medium text-stone-800 dark:text-stone-200">{member.name}</td>
                   <td className="p-3">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${member.role === 'leader' ? 'bg-red-100 text-red-800' :
-                      member.role === 'coleader' ? 'bg-amber-100 text-amber-800' :
-                        'bg-stone-200 text-stone-700'
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${member.role === 'leader' ? 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-300' :
+                      member.role === 'coleader' ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300' :
+                        'bg-stone-200 dark:bg-stone-600 text-stone-700 dark:text-stone-300'
                       }`}>
                       {member.role === 'leader' ? t('roles.leader') : member.role === 'coleader' ? t('roles.coleader') : t('roles.member')}
                     </span>
                   </td>
-                  <td className="p-3 text-stone-500 text-sm">{member.note}</td>
-                  <td className="p-3 text-stone-400 text-xs">{member.archiveRemark}</td>
+                  <td className="p-3 text-stone-500 dark:text-stone-400 text-sm">{member.note}</td>
+                  <td className="p-3 text-stone-400 dark:text-stone-500 text-xs">{member.archiveRemark}</td>
                   <td className="p-3 text-right">
                     <div className="flex justify-end gap-1">
                       <button
                         onClick={() => startEdit(id)}
-                        className="p-2 text-stone-500 hover:bg-stone-100 rounded-lg transition-colors"
+                        className="p-2 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-700 rounded-lg transition-colors"
                         title={t('common.edit')}
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleArchiveClick(id, member.name)}
-                        className="p-2 text-stone-500 hover:bg-amber-50 hover:text-amber-600 rounded-lg transition-colors"
+                        className="p-2 text-stone-500 dark:text-stone-400 hover:bg-amber-50 dark:hover:bg-amber-900/30 hover:text-amber-600 rounded-lg transition-colors"
                         title={t('members.archive_member')}
                       >
                         <Archive className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteMember(id)}
-                        className="p-2 text-stone-500 hover:bg-stone-100 rounded-lg transition-colors"
+                        className="p-2 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-700 rounded-lg transition-colors"
                         title={t('common.delete')}
                       >
                         <Trash2 className="w-4 h-4" />
@@ -981,7 +981,7 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
             })}
             {members.length === 0 && (
               <tr>
-                <td colSpan={5} className="p-8 text-center text-stone-500">
+                <td colSpan={5} className="p-8 text-center text-stone-500 dark:text-stone-400">
                   {t('common.noData')}
                 </td>
               </tr>
@@ -1002,33 +1002,33 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
       {/* Archive Modal */}
       {archiveModal.isOpen && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="bg-stone-50 px-6 py-4 border-b border-stone-200 flex justify-between items-center">
-              <h3 className="text-lg font-bold text-stone-800 flex items-center gap-2">
+          <div className="bg-white dark:bg-stone-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="bg-stone-50 dark:bg-stone-700 px-6 py-4 border-b border-stone-200 dark:border-stone-600 flex justify-between items-center">
+              <h3 className="text-lg font-bold text-stone-800 dark:text-stone-200 flex items-center gap-2">
                 <Archive className="w-5 h-5 text-amber-600" />
                 {t('members.archive_member')}
               </h3>
-              <button onClick={closeArchiveModal} className="p-2 hover:bg-stone-200 rounded-full transition-colors">
-                <X className="w-5 h-5 text-stone-500" />
+              <button onClick={closeArchiveModal} className="p-2 hover:bg-stone-200 dark:hover:bg-stone-600 rounded-full transition-colors">
+                <X className="w-5 h-5 text-stone-500 dark:text-stone-400" />
               </button>
             </div>
 
             <div className="p-6 space-y-4">
-              <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg flex gap-3">
+              <div className="bg-amber-50 dark:bg-amber-900/30 border-l-4 border-amber-400 dark:border-amber-600 p-4 rounded-r-lg flex gap-3">
                 <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
-                <div className="text-sm text-amber-800">
+                <div className="text-sm text-amber-800 dark:text-amber-200">
                   <p className="font-bold mb-1">{t('members.confirm_archive')}</p>
                   <p><strong>{archiveModal.memberName}</strong> - <strong>{archiveModal.guildName}</strong></p>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-stone-600 mb-1">
-                  {t('members.archive_reason')} <span className="text-stone-400 font-normal">({t('common.optional')})</span>
+                <label className="block text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">
+                  {t('members.archive_reason')} <span className="text-stone-400 dark:text-stone-500 font-normal">({t('common.optional')})</span>
                 </label>
                 <input
                   type="text"
-                  className="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:ring-2 focus:ring-amber-500 outline-none"
+                  className="w-full p-2.5 border border-stone-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 dark:text-stone-100 focus:ring-2 focus:ring-amber-500 outline-none"
                   placeholder={t('common.note')}
                   value={archiveModal.reason}
                   onChange={(e) => setArchiveModal(prev => ({ ...prev, reason: e.target.value }))}
@@ -1046,7 +1046,7 @@ function GuildMembersManager({ guildId, onBack }: { guildId: string, onBack: () 
                 <button
                   onClick={closeArchiveModal}
                   disabled={isArchiving}
-                  className="flex-1 py-2.5 bg-stone-200 text-stone-700 rounded-xl font-bold hover:bg-stone-300 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 py-2.5 bg-stone-200 dark:bg-stone-600 text-stone-700 dark:text-stone-200 rounded-xl font-bold hover:bg-stone-300 dark:hover:bg-stone-500 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {t('common.cancel')}
                 </button>
@@ -1288,10 +1288,10 @@ function CostumesManager() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-6 text-stone-800">{t('nav.costume_db')}</h2>
+      <h2 className="text-2xl font-bold mb-6 text-stone-800 dark:text-stone-200">{t('nav.costume_db')}</h2>
       <div className="grid grid-cols-12 gap-6 h-[600px]">
         {/* Characters Column */}
-        <div className="col-span-3 bg-stone-50 rounded-xl border border-stone-200 p-4 overflow-y-auto flex flex-col">
+        <div className="col-span-3 bg-stone-50 dark:bg-stone-700 rounded-xl border border-stone-200 dark:border-stone-600 p-4 overflow-y-auto flex flex-col">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold">{t('costumes.character')}</h3>
             <div className="flex gap-1">
@@ -1302,13 +1302,13 @@ function CostumesManager() {
               )}
               <button
                 onClick={() => isReorderingCharacters ? handleSaveCharacterOrder() : setIsReorderingCharacters(true)}
-                className={`p-1.5 rounded-lg transition-colors ${isReorderingCharacters ? 'bg-amber-200 text-amber-800' : 'bg-stone-200 hover:bg-stone-300 text-stone-700'}`}
+                className={`p-1.5 rounded-lg transition-colors ${isReorderingCharacters ? 'bg-amber-200 text-amber-800' : 'bg-stone-200 dark:bg-stone-600 hover:bg-stone-300 dark:hover:bg-stone-500 text-stone-700 dark:text-stone-300'}`}
                 title={isReorderingCharacters ? t('costumes.save_order') : t('costumes.reorder_character')}
               >
                 {isReorderingCharacters ? <Save className="w-4 h-4" /> : <ArrowUp className="w-4 h-4" />}
               </button>
-              <button onClick={handleAddCharacter} className="p-1.5 bg-stone-200 hover:bg-stone-300 rounded-lg transition-colors" title={t('costumes.add_character')}>
-                <Plus className="w-4 h-4 text-stone-700" />
+              <button onClick={handleAddCharacter} className="p-1.5 bg-stone-200 dark:bg-stone-600 hover:bg-stone-300 dark:hover:bg-stone-500 rounded-lg transition-colors" title={t('costumes.add_character')}>
+                <Plus className="w-4 h-4 text-stone-700 dark:text-stone-300" />
               </button>
             </div>
           </div>
@@ -1317,16 +1317,16 @@ function CostumesManager() {
             <div className="flex-1 overflow-y-auto flex flex-col">
               <Reorder.Group axis="y" values={orderedCharacters} onReorder={setOrderedCharacters} className="space-y-2 flex-1">
                 {orderedCharacters.map(char => (
-                  <Reorder.Item key={char.id} value={char} className="bg-white p-2 rounded-lg shadow-sm border border-stone-200 flex items-center gap-3 cursor-grab active:cursor-grabbing">
-                    <GripVertical className="w-4 h-4 text-stone-400" />
+                  <Reorder.Item key={char.id} value={char} className="bg-white dark:bg-stone-800 p-2 rounded-lg shadow-sm border border-stone-200 dark:border-stone-600 flex items-center gap-3 cursor-grab active:cursor-grabbing">
+                    <GripVertical className="w-4 h-4 text-stone-400 dark:text-stone-500" />
                     <img src={getImageUrl(Object.values(db.costumes).find(c => c.characterId === char.id)?.imageName)} alt={char.name} className="w-8 h-8 rounded-md object-cover" />
                     <span>{i18n.language === 'en' ? (char.nameE || char.name) : char.name}</span>
                   </Reorder.Item>
                 ))}
               </Reorder.Group>
-              <div className="mt-4 flex gap-2 sticky bottom-0 bg-stone-50 pt-2">
+              <div className="mt-4 flex gap-2 sticky bottom-0 bg-stone-50 dark:bg-stone-700 pt-2">
                 <button onClick={handleSaveCharacterOrder} className="flex-1 py-2 bg-amber-600 text-white rounded-lg text-sm hover:bg-amber-700">{t('common.save')}</button>
-                <button onClick={() => setIsReorderingCharacters(false)} className="flex-1 py-2 bg-stone-200 text-stone-600 rounded-lg text-sm hover:bg-stone-300">{t('common.cancel')}</button>
+                <button onClick={() => setIsReorderingCharacters(false)} className="flex-1 py-2 bg-stone-200 dark:bg-stone-600 text-stone-600 dark:text-stone-300 rounded-lg text-sm hover:bg-stone-300 dark:hover:bg-stone-500">{t('common.cancel')}</button>
               </div>
             </div>
           ) : (
@@ -1335,7 +1335,7 @@ function CostumesManager() {
                 <button
                   key={char.id}
                   onClick={() => handleSelectCharacter(char.id)}
-                  className={`w-full text-left p-2 rounded-lg flex items-center gap-3 ${selectedCharacterId === char.id ? 'bg-amber-100 text-amber-800' : 'hover:bg-stone-200'}`}>
+                  className={`w-full text-left p-2 rounded-lg flex items-center gap-3 ${selectedCharacterId === char.id ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300' : 'hover:bg-stone-200 dark:hover:bg-stone-600'}`}>
                   <img src={getImageUrl(Object.values(db.costumes).find(c => c.characterId === char.id)?.imageName)} alt={char.name} className="w-10 h-10 rounded-md object-cover" />
                   <span>{i18n.language === 'en' ? (char.nameE || char.name) : char.name}</span>
                 </button>
@@ -1345,7 +1345,7 @@ function CostumesManager() {
         </div>
 
         {/* Costumes Column */}
-        <div className="col-span-4 bg-stone-50 rounded-xl border border-stone-200 p-4 overflow-y-auto flex flex-col">
+        <div className="col-span-4 bg-stone-50 dark:bg-stone-700 rounded-xl border border-stone-200 dark:border-stone-600 p-4 overflow-y-auto flex flex-col">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold">{selectedCharacter ? (i18n.language === 'en' ? (selectedCharacter.nameE || selectedCharacter.name) : selectedCharacter.name) : t('costumes.costume')}</h3>
             {selectedCharacterId && (
@@ -1357,13 +1357,13 @@ function CostumesManager() {
                 )}
                 <button
                   onClick={() => isReorderingCostumes ? handleSaveCostumeOrder() : setIsReorderingCostumes(true)}
-                  className={`p-1.5 rounded-lg transition-colors ${isReorderingCostumes ? 'bg-amber-200 text-amber-800' : 'bg-stone-200 hover:bg-stone-300 text-stone-700'}`}
+                  className={`p-1.5 rounded-lg transition-colors ${isReorderingCostumes ? 'bg-amber-200 text-amber-800' : 'bg-stone-200 dark:bg-stone-600 hover:bg-stone-300 dark:hover:bg-stone-500 text-stone-700 dark:text-stone-300'}`}
                   title={isReorderingCostumes ? t('costumes.save_order') : t('costumes.reorder_costume')}
                 >
                   {isReorderingCostumes ? <Save className="w-4 h-4" /> : <ArrowUp className="w-4 h-4" />}
                 </button>
-                <button onClick={handleAddCostume} className="p-1.5 bg-stone-200 hover:bg-stone-300 rounded-lg transition-colors" title={t('costumes.add_costume')}>
-                  <Plus className="w-4 h-4 text-stone-700" />
+                <button onClick={handleAddCostume} className="p-1.5 bg-stone-200 dark:bg-stone-600 hover:bg-stone-300 dark:hover:bg-stone-500 rounded-lg transition-colors" title={t('costumes.add_costume')}>
+                  <Plus className="w-4 h-4 text-stone-700 dark:text-stone-300" />
                 </button>
               </div>
             )}
@@ -1373,16 +1373,16 @@ function CostumesManager() {
               <div className="flex-1 overflow-y-auto flex flex-col">
                 <Reorder.Group axis="y" values={orderedCostumes} onReorder={setOrderedCostumes} className="space-y-2 flex-1">
                   {orderedCostumes.map(costume => (
-                    <Reorder.Item key={costume.id} value={costume} className="bg-white p-2 rounded-lg shadow-sm border border-stone-200 flex items-center gap-3 cursor-grab active:cursor-grabbing">
-                      <GripVertical className="w-4 h-4 text-stone-400" />
+                    <Reorder.Item key={costume.id} value={costume} className="bg-white dark:bg-stone-800 p-2 rounded-lg shadow-sm border border-stone-200 dark:border-stone-600 flex items-center gap-3 cursor-grab active:cursor-grabbing">
+                      <GripVertical className="w-4 h-4 text-stone-400 dark:text-stone-500" />
                       <img src={getImageUrl(costume.imageName)} alt={costume.name} className="w-8 h-8 rounded-md object-cover" />
                       <span>{i18n.language === 'en' ? (costume.nameE || costume.name) : costume.name}</span>
                     </Reorder.Item>
                   ))}
                 </Reorder.Group>
-                <div className="mt-4 flex gap-2 sticky bottom-0 bg-stone-50 pt-2">
+                <div className="mt-4 flex gap-2 sticky bottom-0 bg-stone-50 dark:bg-stone-700 pt-2">
                   <button onClick={handleSaveCostumeOrder} className="flex-1 py-2 bg-amber-600 text-white rounded-lg text-sm hover:bg-amber-700">{t('common.save')}</button>
-                  <button onClick={() => setIsReorderingCostumes(false)} className="flex-1 py-2 bg-stone-200 text-stone-600 rounded-lg text-sm hover:bg-stone-300">{t('common.cancel')}</button>
+                  <button onClick={() => setIsReorderingCostumes(false)} className="flex-1 py-2 bg-stone-200 dark:bg-stone-600 text-stone-600 dark:text-stone-300 rounded-lg text-sm hover:bg-stone-300 dark:hover:bg-stone-500">{t('common.cancel')}</button>
                 </div>
               </div>
             ) : (
@@ -1391,7 +1391,7 @@ function CostumesManager() {
                   <button
                     key={costume.id}
                     onClick={() => setSelectedCostumeId(costume.id)}
-                    className={`w-full text-left p-2 rounded-lg flex items-center gap-3 ${selectedCostumeId === costume.id ? 'bg-amber-100 text-amber-800' : 'hover:bg-stone-200'}`}>
+                    className={`w-full text-left p-2 rounded-lg flex items-center gap-3 ${selectedCostumeId === costume.id ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300' : 'hover:bg-stone-200 dark:hover:bg-stone-600'}`}>
                     <img src={getImageUrl(costume.imageName)} alt={costume.name} className="w-10 h-10 rounded-md object-cover" />
                     <span>{i18n.language === 'en' ? (costume.nameE || costume.name) : costume.name}</span>
                     {costume.isNew && <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded-full">NEW</span>}
@@ -1403,29 +1403,29 @@ function CostumesManager() {
         </div>
 
         {/* Edit Column */}
-        <div className="col-span-5 bg-stone-50 rounded-xl border border-stone-200 p-4 overflow-y-auto">
+        <div className="col-span-5 bg-stone-50 dark:bg-stone-700 rounded-xl border border-stone-200 dark:border-stone-600 p-4 overflow-y-auto">
           <h3 className="text-lg font-semibold mb-4">{t('common.edit')}</h3>
           {selectedCostume && (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-stone-600 mb-1">{t('costumes.costume_name')}</label>
-                <input type="text" value={editCostumeName} onChange={e => setEditCostumeName(e.target.value)} className="w-full p-2 border border-stone-300 rounded-lg" />
+                <label className="block text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">{t('costumes.costume_name')}</label>
+                <input type="text" value={editCostumeName} onChange={e => setEditCostumeName(e.target.value)} className="w-full p-2 border border-stone-300 dark:border-stone-600 rounded-lg dark:bg-stone-700 dark:text-stone-100" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-stone-600 mb-1">{t('costumes.costume_name')} (EN)</label>
-                <input type="text" value={editCostumeNameE} onChange={e => setEditCostumeNameE(e.target.value)} className="w-full p-2 border border-stone-300 rounded-lg" />
+                <label className="block text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">{t('costumes.costume_name')} (EN)</label>
+                <input type="text" value={editCostumeNameE} onChange={e => setEditCostumeNameE(e.target.value)} className="w-full p-2 border border-stone-300 dark:border-stone-600 rounded-lg dark:bg-stone-700 dark:text-stone-100" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-stone-600 mb-1">{t('costumes.order')}</label>
-                <input type="number" value={editCostumeOrder} onChange={e => setEditCostumeOrder(Number(e.target.value))} className="w-full p-2 border border-stone-300 rounded-lg" />
+                <label className="block text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">{t('costumes.order')}</label>
+                <input type="number" value={editCostumeOrder} onChange={e => setEditCostumeOrder(Number(e.target.value))} className="w-full p-2 border border-stone-300 dark:border-stone-600 rounded-lg dark:bg-stone-700 dark:text-stone-100" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-stone-600 mb-1">{t('costumes.image_name')}</label>
-                <input type="text" value={editCostumeImageName} onChange={e => setEditCostumeImageName(e.target.value)} className="w-full p-2 border border-stone-300 rounded-lg" />
+                <label className="block text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">{t('costumes.image_name')}</label>
+                <input type="text" value={editCostumeImageName} onChange={e => setEditCostumeImageName(e.target.value)} className="w-full p-2 border border-stone-300 dark:border-stone-600 rounded-lg dark:bg-stone-700 dark:text-stone-100" />
               </div>
               <div className="flex items-center">
                 <input type="checkbox" id="isNew" checked={editCostumeIsNew} onChange={e => setEditCostumeIsNew(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500" />
-                <label htmlFor="isNew" className="ml-2 block text-sm text-stone-900">{t('costumes.mark_new')}</label>
+                <label htmlFor="isNew" className="ml-2 block text-sm text-stone-900 dark:text-stone-200">{t('costumes.mark_new')}</label>
               </div>
               <div className="flex gap-2">
                 <button
@@ -1443,16 +1443,16 @@ function CostumesManager() {
           {selectedCharacter && !selectedCostume && (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-stone-600 mb-1">{t('costumes.character_name')}</label>
-                <input type="text" value={editCharacterName} onChange={e => setEditCharacterName(e.target.value)} className="w-full p-2 border border-stone-300 rounded-lg" />
+                <label className="block text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">{t('costumes.character_name')}</label>
+                <input type="text" value={editCharacterName} onChange={e => setEditCharacterName(e.target.value)} className="w-full p-2 border border-stone-300 dark:border-stone-600 rounded-lg dark:bg-stone-700 dark:text-stone-100" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-stone-600 mb-1">{t('costumes.character_name')} (EN)</label>
-                <input type="text" value={editCharacterNameE} onChange={e => setEditCharacterNameE(e.target.value)} className="w-full p-2 border border-stone-300 rounded-lg" />
+                <label className="block text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">{t('costumes.character_name')} (EN)</label>
+                <input type="text" value={editCharacterNameE} onChange={e => setEditCharacterNameE(e.target.value)} className="w-full p-2 border border-stone-300 dark:border-stone-600 rounded-lg dark:bg-stone-700 dark:text-stone-100" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-stone-600 mb-1">{t('costumes.order')}</label>
-                <input type="number" value={editCharacterOrder} onChange={e => setEditCharacterOrder(Number(e.target.value))} className="w-full p-2 border border-stone-300 rounded-lg" />
+                <label className="block text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">{t('costumes.order')}</label>
+                <input type="number" value={editCharacterOrder} onChange={e => setEditCharacterOrder(Number(e.target.value))} className="w-full p-2 border border-stone-300 dark:border-stone-600 rounded-lg dark:bg-stone-700 dark:text-stone-100" />
               </div>
               <div className="flex gap-2">
                 <button onClick={handleUpdateCharacter} className="flex-1 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700">{t('costumes.save_character')}</button>
@@ -1531,17 +1531,17 @@ function BackupManager() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold mb-6 text-stone-800 flex items-center gap-2">
+      <h2 className="text-2xl font-bold mb-6 text-stone-800 dark:text-stone-200 flex items-center gap-2">
         <Save className="w-6 h-6 text-amber-600" />
         {t('nav.backup_restore')}
       </h2>
       <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-stone-50 p-8 rounded-2xl border border-stone-200 flex flex-col items-center justify-center text-center">
-          <div className="p-4 bg-blue-100 rounded-full text-blue-600 mb-4">
+        <div className="bg-stone-50 dark:bg-stone-700 p-8 rounded-2xl border border-stone-200 dark:border-stone-600 flex flex-col items-center justify-center text-center">
+          <div className="p-4 bg-blue-100 dark:bg-blue-900/50 rounded-full text-blue-600 mb-4">
             <Download className="w-8 h-8" />
           </div>
-          <h3 className="text-xl font-bold text-stone-800 mb-2">{t('backup.download_backup')}</h3>
-          <p className="text-stone-500 mb-6 max-w-md">
+          <h3 className="text-xl font-bold text-stone-800 dark:text-stone-200 mb-2">{t('backup.download_backup')}</h3>
+          <p className="text-stone-500 dark:text-stone-400 mb-6 max-w-md">
             {t('backup.download_desc')}
           </p>
           <button
@@ -1552,12 +1552,12 @@ function BackupManager() {
           </button>
         </div>
 
-        <div className="bg-stone-50 p-8 rounded-2xl border border-stone-200 flex flex-col items-center justify-center text-center">
-          <div className="p-4 bg-green-100 rounded-full text-green-600 mb-4">
+        <div className="bg-stone-50 dark:bg-stone-700 p-8 rounded-2xl border border-stone-200 dark:border-stone-600 flex flex-col items-center justify-center text-center">
+          <div className="p-4 bg-green-100 dark:bg-green-900/50 rounded-full text-green-600 mb-4">
             <Upload className="w-8 h-8" />
           </div>
-          <h3 className="text-xl font-bold text-stone-800 mb-2">{t('backup.restore_from_file')}</h3>
-          <p className="text-stone-500 mb-6 max-w-md">
+          <h3 className="text-xl font-bold text-stone-800 dark:text-stone-200 mb-2">{t('backup.restore_from_file')}</h3>
+          <p className="text-stone-500 dark:text-stone-400 mb-6 max-w-md">
             {t('backup.restore_desc')}
           </p>
           <input type="file" accept=".json" onChange={handleRestore} ref={fileInputRef} className="hidden" />
@@ -1569,12 +1569,12 @@ function BackupManager() {
           </button>
         </div>
       </div>
-      <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg">
+      <div className="bg-amber-50 dark:bg-amber-900/30 border-l-4 border-amber-400 dark:border-amber-600 p-4 rounded-r-lg">
         <div className="flex">
           <div className="py-1"><AlertCircle className="h-5 w-5 text-amber-500 mr-3" /></div>
           <div>
-            <p className="font-bold text-amber-800">{t('backup.important_notice')}</p>
-            <p className="text-sm text-amber-700">
+            <p className="font-bold text-amber-800 dark:text-amber-200">{t('backup.important_notice')}</p>
+            <p className="text-sm text-amber-700 dark:text-amber-300">
               {t('backup.important_desc')}
             </p>
           </div>
@@ -1615,16 +1615,16 @@ function SettingsManager() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold mb-6 text-stone-800 flex items-center gap-2">
+      <h2 className="text-2xl font-bold mb-6 text-stone-800 dark:text-stone-200 flex items-center gap-2">
         <Settings className="w-6 h-6 text-amber-600" />
         {t('nav.settings')}
       </h2>
 
-      <div className="bg-stone-50 p-6 rounded-2xl border border-stone-200">
-        <h3 className="text-lg font-bold text-stone-800 mb-4">{t('settings.bgm')}</h3>
+      <div className="bg-stone-50 dark:bg-stone-700 p-6 rounded-2xl border border-stone-200 dark:border-stone-600">
+        <h3 className="text-lg font-bold text-stone-800 dark:text-stone-200 mb-4">{t('settings.bgm')}</h3>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-stone-600 mb-1">
+            <label className="block text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">
               {t('settings.bgm_url')}
             </label>
             <input
@@ -1632,15 +1632,15 @@ function SettingsManager() {
               value={bgmUrl}
               onChange={(e) => setBgmUrl(e.target.value)}
               placeholder="https://example.com/music.mp3"
-              className="w-full p-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+              className="w-full p-3 border border-stone-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none dark:bg-stone-700 dark:text-stone-100"
             />
-            <p className="text-xs text-stone-500 mt-2">
+            <p className="text-xs text-stone-500 dark:text-stone-400 mt-2">
               {t('settings.bgm_hint')}
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-stone-600 mb-1">
+            <label className="block text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">
               {t('settings.bgm_default_volume')} ({bgmDefaultVolume}%)
             </label>
             <input
@@ -1649,7 +1649,7 @@ function SettingsManager() {
               max="100"
               value={bgmDefaultVolume}
               onChange={(e) => setBgmDefaultVolume(Number(e.target.value))}
-              className="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-amber-600"
+              className="w-full h-2 bg-stone-200 dark:bg-stone-600 rounded-lg appearance-none cursor-pointer accent-amber-600"
             />
           </div>
 
