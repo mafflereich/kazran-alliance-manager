@@ -212,6 +212,17 @@ export default function Header() {
               <span className="hidden sm:inline">{t('header.costume_list')}</span>
             </button>
 
+            {userRole && ['manager', 'admin', 'creator'].includes(userRole) && (
+              <button
+                onClick={() => setCurrentView({ type: 'application_mailbox' })}
+                disabled={currentView?.type === 'application_mailbox'}
+                className={`flex items-center gap-2 transition-colors ${currentView?.type === 'application_mailbox' ? 'text-amber-500 cursor-default' : 'hover:text-amber-400'}`}
+              >
+                <Mail className="w-4 h-4" />
+                <span className="hidden sm:inline">{t('header.application_mailbox', '申請信箱')}</span>
+              </button>
+            )}
+
             {currentUser ? (
               <div className="flex items-center gap-6">
                 {canAccessAdmin && (
@@ -222,17 +233,6 @@ export default function Header() {
                   >
                     <Settings className="w-4 h-4" />
                     <span className="hidden sm:inline">{t('header.admin_settings')}</span>
-                  </button>
-                )}
-
-                {userRole === 'creator' && (
-                  <button
-                    onClick={() => setCurrentView({ type: 'application_mailbox' })}
-                    disabled={currentView?.type === 'application_mailbox'}
-                    className={`flex items-center gap-2 transition-colors ${currentView?.type === 'application_mailbox' ? 'text-amber-500 cursor-default' : 'hover:text-amber-400'}`}
-                  >
-                    <Mail className="w-4 h-4" />
-                    <span className="hidden sm:inline">{t('header.application_mailbox', '申請信箱')}</span>
                   </button>
                 )}
 
