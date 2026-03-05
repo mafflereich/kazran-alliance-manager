@@ -257,6 +257,7 @@
     "system_title": "Kazran Alliance System",
     "costume_list": "Costume List",
     "admin_settings": "Admin Settings",
+    "arcade": "Arcade",
     "logout": "Logout ({{user}})",
     "login_btn": "Login"
   },

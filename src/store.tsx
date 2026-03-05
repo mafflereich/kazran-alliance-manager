@@ -20,7 +20,7 @@ const defaultData: Database = {
   applyMails: {}
 };
 
-type ViewState = { type: 'admin' } | { type: 'guild', guildId: string } | { type: 'application_mailbox' } | null;
+type ViewState = { type: 'admin' } | { type: 'guild', guildId: string } | { type: 'application_mailbox' } | { type: 'arcade' } | null;
 
 interface AppContextType {
   db: Database;
