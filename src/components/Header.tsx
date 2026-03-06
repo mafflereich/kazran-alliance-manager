@@ -229,7 +229,7 @@ export default function Header() {
                 className={`flex items-center gap-2 transition-colors ${currentView?.type === 'application_mailbox' ? 'text-amber-500 cursor-default' : 'hover:text-amber-400'}`}
               >
                 <Mail className="w-4 h-4" />
-                <span className="hidden sm:inline">{t('header.application_mailbox', '申請信箱')}</span>
+                <span className="hidden sm:inline">{t('header.application_mailbox')}</span>
               </button>
             )}
 
@@ -243,7 +243,7 @@ export default function Header() {
                 className={`flex items-center gap-2 transition-colors ${currentView?.type === 'arcade' ? 'text-amber-500 cursor-default' : 'hover:text-amber-400'}`}
               >
                 <Gamepad2 className="w-4 h-4" />
-                <span className="hidden sm:inline">{t('header.arcade', '街機遊戲')}</span>
+                <span className="hidden sm:inline">{t('header.arcade')}</span>
               </button>
             )}
 
@@ -259,7 +259,7 @@ export default function Header() {
                     className={`flex items-center gap-2 transition-colors ${currentView?.type === 'alliance_raid_record' ? 'text-amber-500 cursor-default' : 'hover:text-amber-400'}`}
                   >
                     <Trophy className="w-4 h-4" />
-                    <span className="hidden sm:inline">{t('header.alliance_raid_record', '聯盟成績記錄')}</span>
+                    <span className="hidden sm:inline">{t('header.alliance_raid_record')}</span>
                   </button>
                 )}
 
@@ -300,7 +300,7 @@ export default function Header() {
                 <button
                   onClick={cycleTheme}
                   className="flex items-center justify-center hover:text-amber-400 transition-colors p-1"
-                  title={preference === 'system' ? 'System' : preference === 'light' ? 'Light' : 'Dark'}
+                  title={preference === 'system' ? t('header.theme_system') : preference === 'light' ? t('header.theme_light') : t('header.theme_dark')}
                 >
                   {preference === 'light' && <Sun className="w-4 h-4" />}
                   {preference === 'dark' && <Moon className="w-4 h-4" />}
@@ -314,7 +314,7 @@ export default function Header() {
                   onClick={() => hasBgm && toggleMute()}
                   disabled={!hasBgm}
                   className={`flex items-center justify-center transition-colors p-1 ${hasBgm ? 'hover:text-amber-400' : 'text-stone-600 cursor-not-allowed'}`}
-                  title={!hasBgm ? t('common.no_bgm', '無背景音樂') : isMuted ? t('common.unmute') : t('common.mute')}
+                  title={!hasBgm ? t('common.no_bgm') : isMuted ? t('common.unmute') : t('common.mute')}
                 >
                   {isMuted || !hasBgm ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
                 </button>
