@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '../supabase';
 import { useAppContext } from '../store';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { Trophy, Plus, Edit2, Save, X, Shield, AlertCircle } from 'lucide-react';
+import { Trophy, Plus, Edit2, Save, X, Shield, AlertCircle, Download } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { getTierColor, getTierTextColorDark } from '../utils';
+import { toPng } from 'html-to-image';
 
 interface RaidSeason {
   id: string;
@@ -33,6 +35,22 @@ export default function AllianceRaidRecord() {
   // Modals state
   const [isSeasonModalOpen, setIsSeasonModalOpen] = useState(false);
   const [newSeason, setNewSeason] = useState({ season_number: 1, period_text: '', description: '' });
+
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+  const [downloadConfig, setDownloadConfig] = useState<{
+    type: 'single' | 'consecutive' | 'all',
+    singleSeasonId: string,
+    startSeasonId: string,
+    endSeasonId: string
+  }>({
+    type: 'single',
+    singleSeasonId: '',
+    startSeasonId: '',
+    endSeasonId: ''
+  });
+
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const exportRef = useRef<HTMLDivElement>(null);
 
   const [editingCell, setEditingCell] = useState<{ guild_id: string, season_id: string } | null>(null);
   const [editRecordData, setEditRecordData] = useState<{ score: number | '', rank: string }>({ score: '', rank: '' });
@@ -64,6 +82,17 @@ export default function AllianceRaidRecord() {
   useEffect(() => {
     fetchRaidData();
   }, []);
+
+  useEffect(() => {
+    if (seasons.length > 0) {
+      setDownloadConfig(prev => ({
+        ...prev,
+        singleSeasonId: seasons[0].id,
+        startSeasonId: seasons[1]?.id || seasons[0].id,
+        endSeasonId: seasons[0].id
+      }));
+    }
+  }, [seasons]);
 
   const handleAddSeason = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,19 +158,104 @@ export default function AllianceRaidRecord() {
   };
 
   const sortedGuilds = useMemo(() => {
-    return Object.values(db.guilds).sort((a, b) => {
-      const tierA = a.tier || 99;
-      const tierB = b.tier || 99;
-      if (tierA !== tierB) return tierA - tierB;
-      const orderA = a.orderNum || 99;
-      const orderB = b.orderNum || 99;
-      return orderA - orderB;
-    });
+    return Object.values(db.guilds)
+      .filter(g => g.isDisplay !== false)
+      .sort((a, b) => {
+        const tierA = a.tier || 99;
+        const tierB = b.tier || 99;
+        if (tierA !== tierB) return tierA - tierB;
+        const orderA = a.orderNum || 99;
+        const orderB = b.orderNum || 99;
+        return orderA - orderB;
+      });
   }, [db.guilds]);
 
   const getRecord = (guild_id: string, season_id: string) => {
     return records.find(r => r.guild_id === guild_id && r.season_id === season_id);
   };
+
+  // Drag to scroll logic
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 2; // Scroll speed
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleDownloadImage = async () => {
+    if (!exportRef.current) return;
+    setIsGeneratingImage(true);
+    try {
+      // Small delay to ensure rendering
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const dataUrl = await toPng(exportRef.current, {
+        backgroundColor: '#1c1917', // stone-900
+        pixelRatio: 2,
+        style: {
+          transform: 'scale(1)',
+          transformOrigin: 'top left'
+        }
+      });
+      
+      const link = document.createElement('a');
+      link.download = `raid-record-${new Date().getTime()}.png`;
+      link.href = dataUrl;
+      link.click();
+      setIsDownloadModalOpen(false);
+    } catch (err) {
+      console.error('Error generating image:', err);
+      alert('生成圖片失敗');
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
+
+  const selectedSeasonsForExport = useMemo(() => {
+    if (downloadConfig.type === 'all') return [...seasons].reverse();
+    const sorted = [...seasons].sort((a, b) => a.season_number - b.season_number);
+    
+    if (downloadConfig.type === 'single') {
+      return sorted.filter(s => s.id === downloadConfig.singleSeasonId);
+    }
+    
+    if (downloadConfig.type === 'consecutive') {
+      const start = sorted.find(s => s.id === downloadConfig.startSeasonId);
+      const end = sorted.find(s => s.id === downloadConfig.endSeasonId);
+      if (!start || !end) return [];
+      
+      const startNum = start.season_number;
+      const endNum = end.season_number;
+      
+      const min = Math.min(startNum, endNum);
+      const max = Math.max(startNum, endNum);
+      
+      return sorted.filter(s => s.season_number >= min && s.season_number <= max);
+    }
+    
+    return sorted;
+  }, [seasons, downloadConfig]);
 
   return (
     <div className="min-h-screen bg-stone-100 dark:bg-stone-900 flex flex-col">
@@ -157,24 +271,31 @@ export default function AllianceRaidRecord() {
               <h1 className="text-2xl font-bold text-stone-800 dark:text-stone-100">
                 {t('header.alliance_raid_record', '聯盟成績記錄')}
               </h1>
-              <p className="text-sm text-stone-500 dark:text-stone-400">
-                Guild Raid 歷史賽季表現
-              </p>
             </div>
           </div>
 
-          {canManage && (
+          <div className="flex items-center gap-2">
             <button
-              onClick={() => {
-                setNewSeason({ season_number: (seasons[0]?.season_number || 0) + 1, period_text: '', description: '' });
-                setIsSeasonModalOpen(true);
-              }}
-              className="flex items-center gap-2 px-4 py-2 bg-stone-800 dark:bg-stone-700 text-white rounded-lg hover:bg-stone-700 dark:hover:bg-stone-600 transition-colors"
+              onClick={() => setIsDownloadModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
             >
-              <Plus className="w-4 h-4" />
-              <span>新增賽季</span>
+              <Download className="w-4 h-4" />
+              <span>下載記錄</span>
             </button>
-          )}
+
+            {canManage && (
+              <button
+                onClick={() => {
+                  setNewSeason({ season_number: (seasons[0]?.season_number || 0) + 1, period_text: '', description: '' });
+                  setIsSeasonModalOpen(true);
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-stone-800 dark:bg-stone-700 text-white rounded-lg hover:bg-stone-700 dark:hover:bg-stone-600 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                <span>新增賽季</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {error && (
@@ -194,20 +315,30 @@ export default function AllianceRaidRecord() {
               目前沒有任何賽季記錄。
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div 
+              ref={scrollRef}
+              onMouseDown={handleMouseDown}
+              onMouseLeave={handleMouseLeave}
+              onMouseUp={handleMouseUp}
+              onMouseMove={handleMouseMove}
+              className="overflow-x-auto cursor-grab active:cursor-grabbing select-none"
+            >
               <table className="w-full text-left border-collapse min-w-max">
                 <thead>
                   <tr>
-                    <th className="sticky left-0 z-20 bg-stone-100 dark:bg-stone-900/80 p-4 border-b border-r border-stone-200 dark:border-stone-700 font-bold text-stone-700 dark:text-stone-300 w-48 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
-                      公會名稱
+                    <th className="sticky left-0 z-20 bg-stone-100 dark:bg-stone-900/80 p-2 border-b border-r border-stone-200 dark:border-stone-700 font-bold text-stone-700 dark:text-stone-300 w-24 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] text-xs">
+                      {/* 移除 "公會名稱" */}
                     </th>
                     {seasons.map(season => (
-                      <th key={season.id} className="p-4 border-b border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/50 min-w-[160px] align-top">
-                        <div className="flex flex-col gap-1">
-                          <div className="font-bold text-stone-800 dark:text-stone-200">
-                            S{season.season_number} ({season.period_text})
+                      <th key={season.id} className="p-2 border-b border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/50 w-[110px] min-w-[110px] max-w-[110px] align-top">
+                        <div className="flex flex-col gap-0.5">
+                          <div className="font-bold text-stone-800 dark:text-stone-200 text-xs leading-tight">
+                            S{season.season_number}
                           </div>
-                          <div className="text-xs text-stone-500 dark:text-stone-400 font-normal">
+                          <div className="text-[10px] text-stone-600 dark:text-stone-300 font-medium leading-tight">
+                            {season.period_text}
+                          </div>
+                          <div className="text-[9px] text-stone-500 dark:text-stone-400 font-normal leading-tight">
                             {season.description}
                           </div>
                         </div>
@@ -216,64 +347,65 @@ export default function AllianceRaidRecord() {
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedGuilds.map((guild, index) => (
-                    <tr key={guild.id} className="border-b border-stone-100 dark:border-stone-700/50 hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors">
-                      <td className="sticky left-0 z-10 bg-white dark:bg-stone-800 p-4 border-r border-stone-200 dark:border-stone-700 font-medium text-stone-800 dark:text-stone-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] group-hover:bg-stone-50 dark:group-hover:bg-stone-800/50">
-                        {guild.name}
-                      </td>
-                      {seasons.map(season => {
+                  {sortedGuilds.map((guild, index) => {
+                    const tierClasses = getTierColor(guild.tier || 0);
+                    // Extract only background classes for the row
+                    const bgClasses = tierClasses.split(' ').filter(c => c.startsWith('bg-') || c.startsWith('dark:bg-')).join(' ');
+                    
+                    return (
+                      <tr key={guild.id} className={`border-b border-stone-100 dark:border-stone-700/50 hover:brightness-95 dark:hover:brightness-110 transition-all ${bgClasses}`}>
+                        <td className={`sticky left-0 z-10 py-1 px-2 border-r border-stone-200 dark:border-stone-700 font-medium text-stone-800 dark:text-stone-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] text-xs w-24 truncate ${bgClasses}`}>
+                          {guild.name}
+                        </td>
+                        {seasons.map(season => {
                         const record = getRecord(guild.id, season.id);
                         const isEditing = editingCell?.guild_id === guild.id && editingCell?.season_id === season.id;
 
                         return (
-                          <td key={season.id} className="p-4 relative group border-r border-stone-200 dark:border-stone-700/50 min-w-[160px] align-middle">
+                          <td key={season.id} className="py-1 px-2 relative group border-r border-stone-200 dark:border-stone-700/50 w-[110px] min-w-[110px] max-w-[110px] align-middle">
                             {isEditing ? (
-                              <div className="flex flex-col gap-2">
-                                <div>
-                                  <label className="text-[10px] text-stone-500 uppercase">Score</label>
+                              <div className="flex flex-col gap-1">
+                                <div className="flex gap-1">
+                                  <input
+                                    type="text"
+                                    value={editRecordData.rank}
+                                    onChange={e => setEditRecordData(prev => ({ ...prev, rank: e.target.value }))}
+                                    className="w-12 px-1 py-0.5 text-xs border border-stone-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-stone-800 dark:text-stone-100"
+                                    placeholder="Rank"
+                                  />
                                   <input
                                     type="number"
                                     max="1000000"
                                     value={editRecordData.score}
                                     onChange={e => setEditRecordData(prev => ({ ...prev, score: e.target.value ? Number(e.target.value) : '' }))}
-                                    className="w-full px-2 py-1 text-sm border border-stone-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-stone-800 dark:text-stone-100"
+                                    className="flex-1 px-1 py-0.5 text-xs border border-stone-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-stone-800 dark:text-stone-100"
                                     placeholder="Score"
                                   />
                                 </div>
-                                <div>
-                                  <label className="text-[10px] text-stone-500 uppercase">Rank</label>
-                                  <input
-                                    type="text"
-                                    value={editRecordData.rank}
-                                    onChange={e => setEditRecordData(prev => ({ ...prev, rank: e.target.value }))}
-                                    className="w-full px-2 py-1 text-sm border border-stone-300 dark:border-stone-600 rounded bg-white dark:bg-stone-700 text-stone-800 dark:text-stone-100"
-                                    placeholder="Rank"
-                                  />
-                                </div>
-                                <div className="flex gap-2 mt-1">
+                                <div className="flex gap-1">
                                   <button
                                     onClick={() => handleSaveRecord(guild.id, season.id)}
-                                    className="flex-1 py-1 bg-green-100 text-green-700 hover:bg-green-200 rounded flex items-center justify-center transition-colors"
+                                    className="flex-1 py-0.5 bg-green-100 text-green-700 hover:bg-green-200 rounded flex items-center justify-center transition-colors"
                                   >
-                                    <Save className="w-4 h-4" />
+                                    <Save className="w-3.5 h-3.5" />
                                   </button>
                                   <button
                                     onClick={() => setEditingCell(null)}
-                                    className="flex-1 py-1 bg-stone-200 text-stone-700 hover:bg-stone-300 rounded flex items-center justify-center transition-colors"
+                                    className="flex-1 py-0.5 bg-stone-200 text-stone-700 hover:bg-stone-300 rounded flex items-center justify-center transition-colors"
                                   >
-                                    <X className="w-4 h-4" />
+                                    <X className="w-3.5 h-3.5" />
                                   </button>
                                 </div>
                               </div>
                             ) : (
-                              <div className="flex flex-col gap-1 min-h-[48px] justify-center relative">
+                              <div className="flex items-center gap-1.5 min-h-[20px] relative pr-6">
                                 {record ? (
                                   <>
-                                    <div className="text-sm font-bold text-stone-800 dark:text-stone-200">
-                                      {record.score.toLocaleString()}
-                                    </div>
-                                    <div className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+                                    <div className="text-sm font-bold text-amber-600 dark:text-amber-400 leading-tight">
                                       {record.rank}
+                                    </div>
+                                    <div className="text-[10px] text-stone-500 dark:text-stone-400 leading-tight">
+                                      ({record.score.toLocaleString()})
                                     </div>
                                   </>
                                 ) : (
@@ -285,7 +417,7 @@ export default function AllianceRaidRecord() {
                                 {canManage && (
                                   <button
                                     onClick={() => startEditing(guild.id, season.id)}
-                                    className="absolute top-1/2 -translate-y-1/2 right-0 p-1.5 text-stone-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded opacity-0 group-hover:opacity-100 transition-all"
+                                    className="absolute top-1/2 -translate-y-1/2 right-0 p-1 text-stone-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded opacity-0 group-hover:opacity-100 transition-all"
                                   >
                                     <Edit2 className="w-3.5 h-3.5" />
                                   </button>
@@ -296,7 +428,8 @@ export default function AllianceRaidRecord() {
                         );
                       })}
                     </tr>
-                  ))}
+                  );
+                })}
                 </tbody>
               </table>
             </div>
@@ -379,6 +512,214 @@ export default function AllianceRaidRecord() {
           </div>
         </div>
       )}
+
+      {/* Download Modal */}
+      {isDownloadModalOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-stone-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b border-stone-200 dark:border-stone-700">
+              <h3 className="text-lg font-bold text-stone-800 dark:text-stone-100">下載成績圖片</h3>
+              <button
+                onClick={() => setIsDownloadModalOpen(false)}
+                className="text-stone-400 hover:text-stone-600 dark:hover:text-stone-300"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-4 space-y-4">
+              <div className="flex gap-2 p-1 bg-stone-100 dark:bg-stone-900 rounded-lg">
+                {(['single', 'consecutive', 'all'] as const).map(type => (
+                  <button
+                    key={type}
+                    onClick={() => setDownloadConfig(prev => ({ ...prev, type }))}
+                    className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${
+                      downloadConfig.type === type 
+                        ? 'bg-white dark:bg-stone-700 text-amber-600 shadow-sm' 
+                        : 'text-stone-500 hover:text-stone-700 dark:hover:text-stone-300'
+                    }`}
+                  >
+                    {type === 'single' ? '單次賽季' : type === 'consecutive' ? '連續賽季' : '全部賽季'}
+                  </button>
+                ))}
+              </div>
+
+              {downloadConfig.type === 'single' && (
+                <div>
+                  <label className="block text-xs font-medium text-stone-500 mb-1 uppercase">選擇賽季</label>
+                  <select
+                    value={downloadConfig.singleSeasonId}
+                    onChange={e => setDownloadConfig(prev => ({ ...prev, singleSeasonId: e.target.value }))}
+                    className="w-full px-3 py-2 border border-stone-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-stone-800 dark:text-stone-100 text-sm"
+                  >
+                    {seasons.map(s => (
+                      <option key={s.id} value={s.id}>S{s.season_number} ({s.period_text})</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {downloadConfig.type === 'consecutive' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-stone-500 mb-1 uppercase">開始賽季</label>
+                    <select
+                      value={downloadConfig.startSeasonId}
+                      onChange={e => setDownloadConfig(prev => ({ ...prev, startSeasonId: e.target.value }))}
+                      className="w-full px-3 py-2 border border-stone-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-stone-800 dark:text-stone-100 text-sm"
+                    >
+                      {seasons.map(s => (
+                        <option key={s.id} value={s.id}>S{s.season_number}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-stone-500 mb-1 uppercase">結束賽季</label>
+                    <select
+                      value={downloadConfig.endSeasonId}
+                      onChange={e => setDownloadConfig(prev => ({ ...prev, endSeasonId: e.target.value }))}
+                      className="w-full px-3 py-2 border border-stone-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-stone-800 dark:text-stone-100 text-sm"
+                    >
+                      {seasons.map(s => (
+                        <option key={s.id} value={s.id}>S{s.season_number}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-4">
+                <button
+                  onClick={handleDownloadImage}
+                  disabled={isGeneratingImage}
+                  className="w-full py-3 bg-amber-600 text-white rounded-xl font-bold hover:bg-amber-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {isGeneratingImage ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>生成中...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-5 h-5" />
+                      <span>開始下載圖片</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hidden Export View */}
+      <div className="fixed -left-[9999px] top-0">
+        <div 
+          ref={exportRef}
+          className="bg-stone-900 p-12 text-stone-100"
+          style={{ width: '1200px' }}
+        >
+          <div className="flex justify-between items-center mb-12 border-b border-stone-800 pb-8">
+            <div className="flex items-center gap-4">
+              <Trophy className="w-12 h-12 text-amber-500" />
+              <div>
+                <h1 className="text-4xl font-black tracking-tighter uppercase italic">Alliance Raid History</h1>
+                <p className="text-stone-500 font-mono text-sm tracking-widest uppercase">
+                  {selectedSeasonsForExport.length === 1 
+                    ? `Season ${selectedSeasonsForExport[0].season_number}` 
+                    : `Seasons ${selectedSeasonsForExport[0]?.season_number} - ${selectedSeasonsForExport[selectedSeasonsForExport.length - 1]?.season_number}`}
+                </p>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold text-stone-400">KAZRAN</div>
+              <div className="text-xs text-stone-600 uppercase tracking-widest">Generated at {new Date().toLocaleDateString()}</div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-12">
+            {/* Left Column */}
+            <div className="space-y-8">
+              {(() => {
+                const uniqueTiers = Array.from(new Set(sortedGuilds.map(g => g.tier || 0))).sort((a, b) => a - b);
+                const splitIndex = Math.ceil(uniqueTiers.length / 2);
+                const leftTiers = uniqueTiers.slice(0, splitIndex);
+                
+                return leftTiers.map(tier => (
+                  <div key={tier} className="space-y-3">
+                    <div className="flex items-center gap-2 border-l-4 border-amber-500 pl-3">
+                      <h2 className="text-xl font-black uppercase italic text-amber-500">Tier {tier}</h2>
+                    </div>
+                    <div className="space-y-2">
+                      {sortedGuilds.filter(g => g.tier === tier).map(guild => (
+                        <div key={guild.id} className="bg-stone-800/50 py-2 px-4 rounded-xl border border-stone-700/50 flex justify-between items-center">
+                          <div className="font-bold text-lg">{guild.name}</div>
+                          <div className="flex gap-6">
+                            {selectedSeasonsForExport.map(season => {
+                              const record = getRecord(guild.id, season.id);
+                              return (
+                                <div key={season.id} className="text-right w-[100px] min-w-[100px] max-w-[100px]">
+                                  <div className="text-[10px] text-stone-500 uppercase font-bold">S{season.season_number}</div>
+                                  <div className="flex items-center justify-end gap-1.5 mt-0.5">
+                                    <div className="text-amber-500 font-black text-lg leading-none">{record?.rank || '-'}</div>
+                                    {record && <div className="text-[10px] text-stone-400 font-mono">({record.score.toLocaleString()})</div>}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
+
+            {/* Right Column */}
+            <div className="space-y-8">
+              {(() => {
+                const uniqueTiers = Array.from(new Set(sortedGuilds.map(g => g.tier || 0))).sort((a, b) => a - b);
+                const splitIndex = Math.ceil(uniqueTiers.length / 2);
+                const rightTiers = uniqueTiers.slice(splitIndex);
+                
+                return rightTiers.map(tier => (
+                  <div key={tier} className="space-y-3">
+                    <div className="flex items-center gap-2 border-l-4 border-amber-500 pl-3">
+                      <h2 className="text-xl font-black uppercase italic text-amber-500">Tier {tier}</h2>
+                    </div>
+                    <div className="space-y-2">
+                      {sortedGuilds.filter(g => g.tier === tier).map(guild => (
+                        <div key={guild.id} className="bg-stone-800/50 py-2 px-4 rounded-xl border border-stone-700/50 flex justify-between items-center">
+                          <div className="font-bold text-lg">{guild.name}</div>
+                          <div className="flex gap-6">
+                            {selectedSeasonsForExport.map(season => {
+                              const record = getRecord(guild.id, season.id);
+                              return (
+                                <div key={season.id} className="text-right w-[100px] min-w-[100px] max-w-[100px]">
+                                  <div className="text-[10px] text-stone-500 uppercase font-bold">S{season.season_number}</div>
+                                  <div className="flex items-center justify-end gap-1.5 mt-0.5">
+                                    <div className="text-amber-500 font-black text-lg leading-none">{record?.rank || '-'}</div>
+                                    {record && <div className="text-[10px] text-stone-400 font-mono">({record.score.toLocaleString()})</div>}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
+          </div>
+          
+          <div className="mt-12 pt-8 border-t border-stone-800 text-center text-stone-600 text-xs uppercase tracking-[0.5em]">
+            Kazran Alliance Management System • Official Record
+          </div>
+        </div>
+      </div>
 
       <Footer />
     </div>
