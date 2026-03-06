@@ -231,8 +231,12 @@
     "costume_list": "Costume List",
     "admin_settings": "Admin Settings",
     "arcade": "Arcade Games",
+    "alliance_raid_record": "Alliance Raid Record",
     "logout": "Logout ({{user}})",
-    "login_btn": "Login"
+    "login_btn": "Login",
+    "theme_light": "Light Mode",
+    "theme_dark": "Dark Mode",
+    "theme_system": "System Mode"
   },
   "login": {
     "no_login_account": "This guild has not set up a login account",
@@ -313,7 +317,7 @@
     "add_season": "Add Season",
     "edit_season": "Edit Season",
     "season_number": "Season Number",
-    "time": "Time",
+    "period": "Period",
     "description": "Description",
     "download_title": "Download Record Image",
     "single_season": "Single Season",
@@ -350,6 +354,6 @@
   "footer": {
     "copyright": "© 2026 Browndust2 - Kazran Alliance Manager by 爽世 & ChaosOp. All rights reserved.",
     "disclaimer": "This website is not affiliated with or endorsed by Browndust2. All trademarks and copyrights of the game and its characters are owned by their respective owners.",
-    "language": "Language:"
+    "language": "Language"
   }
 }

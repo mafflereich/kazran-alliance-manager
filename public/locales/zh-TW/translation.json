@@ -231,8 +231,12 @@
     "costume_list": "服裝列表",
     "admin_settings": "後台設定",
     "arcade": "街機遊戲",
+    "alliance_raid_record": "聯盟成績記錄",
     "logout": "登出({{user}})",
-    "login_btn": "登入"
+    "login_btn": "登入",
+    "theme_light": "淺色模式",
+    "theme_dark": "深色模式",
+    "theme_system": "跟隨系統"
   },
   "login": {
     "no_login_account": "此公會尚未設定登入帳號",
@@ -313,7 +317,7 @@
     "add_season": "新增賽季",
     "edit_season": "編輯賽季",
     "season_number": "賽季編號",
-    "time": "時間",
+    "period": "期間",
     "description": "說明",
     "download_title": "下載成績圖片",
     "single_season": "單次賽季",

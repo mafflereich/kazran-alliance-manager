@@ -506,7 +506,7 @@ export default function AllianceRaidRecord() {
               
               <div>
                 <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
-                  {t('alliance_raid.time')}
+                  {t('alliance_raid.period')}
                 </label>
                 <input
                   type="text"
