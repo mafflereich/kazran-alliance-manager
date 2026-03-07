@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../store';
-import { Lock, Check, Shield, Users, Mail, Gamepad2, Trophy, AlertCircle } from 'lucide-react';
+import { Lock, Check, Shield, Users, Mail, Gamepad2, Trophy, AlertCircle, Wrench } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { AccessControl } from '../types';
 
@@ -16,6 +16,7 @@ export default function AccessControlManager() {
     { id: 'application_mailbox', label: t('header.application_mailbox'), icon: <Mail className="w-5 h-5" /> },
     { id: 'arcade', label: t('header.arcade'), icon: <Gamepad2 className="w-5 h-5" /> },
     { id: 'alliance_raid_record', label: t('header.alliance_raid_record'), icon: <Trophy className="w-5 h-5" /> },
+    { id: 'toolbox', label: t('header.toolbox', '小工具'), icon: <Wrench className="w-5 h-5" /> },
   ];
 
   const getDefaultRoles = (pageId: string): ('member' | 'manager' | 'admin' | 'creator')[] => {
@@ -24,6 +25,7 @@ export default function AccessControlManager() {
       case 'application_mailbox': return ['member', 'manager', 'admin', 'creator'];
       case 'arcade': return ['manager', 'admin', 'creator'];
       case 'alliance_raid_record': return ['creator'];
+      case 'toolbox': return ['member', 'manager', 'admin', 'creator'];
       default: return ['creator', 'admin'];
     }
   };

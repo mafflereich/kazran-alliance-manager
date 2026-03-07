@@ -12,6 +12,7 @@ const GuildDashboard = React.lazy(() => import('./pages/GuildDashboard'));
 const ApplicationMailbox = React.lazy(() => import('./pages/ApplicationMailbox'));
 const Arcade = React.lazy(() => import('./pages/Arcade'));
 const AllianceRaidRecord = React.lazy(() => import('./pages/AllianceRaidRecord'));
+const Toolbox = React.lazy(() => import('./pages/Toolbox'));
 import ToastContainer from './components/Toast';
 import { initGA, logPageView } from './analytics';
 
@@ -27,6 +28,7 @@ const AppContent = () => {
       case 'application_mailbox': return ['member', 'manager', 'admin', 'creator'];
       case 'arcade': return ['manager', 'admin', 'creator'];
       case 'alliance_raid_record': return ['creator'];
+      case 'toolbox': return ['member', 'manager', 'admin', 'creator'];
       default: return ['creator', 'admin'];
     }
   };
@@ -41,6 +43,7 @@ const AppContent = () => {
   const canAccessMailbox = canAccessPage('application_mailbox');
   const canAccessAllianceRaidRecord = canAccessPage('alliance_raid_record');
   const canAccessCostumeList = canAccessPage('costume_list');
+  const canAccessToolbox = canAccessPage('toolbox');
 
   React.useEffect(() => {
     let path = '/login';
@@ -55,6 +58,8 @@ const AppContent = () => {
         path = '/arcade';
       } else if (currentView.type === 'alliance_raid_record') {
         path = '/alliance_raid_record';
+      } else if (currentView.type === 'toolbox') {
+        path = '/toolbox';
       } else if (currentView.type === 'guild') {
         path = `/guild/${currentView.guildId}`;
       }
@@ -75,10 +80,13 @@ const AppContent = () => {
     if (currentView?.type === 'alliance_raid_record' && !canAccessAllianceRaidRecord) {
       setCurrentView(null);
     }
+    if (currentView?.type === 'toolbox' && !canAccessToolbox) {
+      setCurrentView(null);
+    }
     if (currentView?.type === 'guild' && !canAccessCostumeList) {
       setCurrentView(null);
     }
-  }, [currentView, canAccessAdmin, canAccessMailbox, canAccessArcade, canAccessAllianceRaidRecord, canAccessCostumeList, setCurrentView]);
+  }, [currentView, canAccessAdmin, canAccessMailbox, canAccessArcade, canAccessAllianceRaidRecord, canAccessCostumeList, canAccessToolbox, setCurrentView]);
 
   if (!currentView || !currentUser) {
     return <Login />;
@@ -98,6 +106,10 @@ const AppContent = () => {
 
   if (currentView.type === 'alliance_raid_record') {
     return canAccessAllianceRaidRecord ? <AllianceRaidRecord /> : <Login />;
+  }
+
+  if (currentView.type === 'toolbox') {
+    return canAccessToolbox ? <Toolbox /> : <Login />;
   }
 
   return canAccessCostumeList ? <GuildDashboard guildId={currentView.guildId} /> : <Login />;

@@ -21,7 +21,7 @@ const defaultData: Database = {
   accessControl: {}
 };
 
-type ViewState = { type: 'admin' } | { type: 'guild', guildId: string } | { type: 'application_mailbox' } | { type: 'arcade' } | { type: 'alliance_raid_record' } | null;
+type ViewState = { type: 'admin' } | { type: 'guild', guildId: string } | { type: 'application_mailbox' } | { type: 'arcade' } | { type: 'alliance_raid_record' } | { type: 'toolbox' } | null;
 
 interface AppContextType {
   db: Database;

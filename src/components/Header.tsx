@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../store';
-import { Shield, LogIn, LogOut, Settings, Users, User, Lock, AlertCircle, X, Globe, Volume2, VolumeX, Sun, Moon, Monitor, Layout, Mail, Gamepad2, Trophy } from 'lucide-react';
+import { Shield, LogIn, LogOut, Settings, Users, User, Lock, AlertCircle, X, Globe, Volume2, VolumeX, Sun, Moon, Monitor, Layout, Mail, Gamepad2, Trophy, Wrench } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../ThemeContext';
 import { logEvent } from '../analytics';
@@ -179,6 +179,7 @@ export default function Header() {
       case 'application_mailbox': return ['member', 'manager', 'admin', 'creator'];
       case 'arcade': return ['manager', 'admin', 'creator'];
       case 'alliance_raid_record': return ['creator'];
+      case 'toolbox': return ['member', 'manager', 'admin', 'creator'];
       default: return ['creator', 'admin'];
     }
   };
@@ -261,6 +262,20 @@ export default function Header() {
               >
                 <Gamepad2 className="w-4 h-4" />
                 <span className="hidden sm:inline">{t('header.arcade')}</span>
+              </button>
+            )}
+
+            {canAccessPage('toolbox') && (
+              <button
+                onClick={() => {
+                  logEvent('Navigation', 'Click', 'Toolbox');
+                  setCurrentView({ type: 'toolbox' });
+                }}
+                disabled={currentView?.type === 'toolbox'}
+                className={`flex items-center gap-2 transition-colors ${currentView?.type === 'toolbox' ? 'text-amber-500 cursor-default' : 'hover:text-amber-400'}`}
+              >
+                <Wrench className="w-4 h-4" />
+                <span className="hidden sm:inline">{t('header.toolbox')}</span>
               </button>
             )}
 
